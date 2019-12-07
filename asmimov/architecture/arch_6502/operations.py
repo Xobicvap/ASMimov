@@ -20,7 +20,7 @@ def rol(system, instruction):
   z = compute_z(x)
 
   return {
-    dest: v,
+    dest: x,
     "P": {"N": n, "Z": z, "C": c}
   }
 
@@ -37,7 +37,7 @@ def ror(system, instruction):
   z = compute_z(x)
 
   return {
-    dest: v,
+    dest: x,
     "P": {"N": n, "Z": z, "C": c}
   }
 
@@ -50,7 +50,7 @@ def asl(system, instruction):
   n = compute_n(x)
   
   return {
-    dest: v,
+    dest: x,
     "P": {"N": n, "Z": z, "C": c}
   }
 
@@ -62,7 +62,7 @@ def lsr(system, instruction):
   z = compute_z(x)
   n = compute_n(x)
   return {
-    dest: v,
+    dest: x,
     "P": {"N": n, "Z": z, "C": c}
   }
 
@@ -93,7 +93,7 @@ def adc(system, instruction):
   x = x & 0xff
 
   return {
-    dest: x
+    dest: x,
     "P": {"N": n, "Z": z, "V": v, "C": c}
   }
 
@@ -297,7 +297,7 @@ def jsr(system, instruction):
 def rti(system, instruction):
   l, r, dest = instruction.metadata()
   return {
-    dest: l
+    dest: l,
     "pop": 2
   }
 
@@ -340,7 +340,7 @@ def eor(system, instruction):
   n = compute_n(x)
   return {
     dest: v,
-    "P": {"N", n, "Z": z}
+    "P": {"N": n, "Z": z}
   }
 
 def bit(system, instruction):
@@ -451,7 +451,7 @@ def branch(will_branch, system, instruction):
 
     after_instruction_page = after_instruction & 0xff00
     after_branch_disp_page = branch_disp & 0xff00
-    if after_branch_disp_page <> after_instruction_page:
+    if after_branch_disp_page != after_instruction_page:
       cycles = cycles + 1
     return {"PC": branch_offset, "cycles": cycles}
   return {"PC": after_instruction, "cycles": cycles}

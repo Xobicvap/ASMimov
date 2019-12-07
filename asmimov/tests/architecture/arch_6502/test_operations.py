@@ -45,6 +45,22 @@ class OperationsTest(unittest.TestCase):
     self.assertEqual(dn, 0)
     self.assertEqual(dc, 0)
 
+  def test_rol_carry_out_not_in(self):
+    metadata = (0x84, 0, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.rol(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x08)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+
   def test_rol_negative_flag(self):
     metadata = (0x40, 1, "A")
     inst = self.Instruction(metadata)
@@ -88,6 +104,126 @@ class OperationsTest(unittest.TestCase):
     self.assertEqual(dv, 0x11)
     self.assertEqual(dz, 0)
     self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_rol_results_in_zero(self):
+    metadata = (0x80, 0, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.rol(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x00)
+    self.assertEqual(dz, 1)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_rol_ff_handled_properly_no_carry(self):
+    metadata = (0xff, 0, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.rol(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0xfe)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 1)
+    self.assertEqual(dc, 1)
+
+  def test_rol_ff_handled_properly_with_carry(self):
+    metadata = (0xff, 1, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.rol(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0xff)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 1)
+    self.assertEqual(dc, 1)
+
+  def test_ror_no_carry_in_or_out(self):
+    metadata = (0x02, 0, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.ror(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x01)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 0)
+
+  def test_ror_carry_in_not_out(self):
+    metadata = (0x02, 1, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.ror(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x81)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 1)
+    self.assertEqual(dc, 0)
+
+  def test_ror_carry_out_not_in(self):
+    metadata = (0x11, 0, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.ror(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x08)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_ror_negative_flag(self):
+    metadata = (0x02, 1, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.ror(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x81)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 1)
+    self.assertEqual(dc, 0)
+
+  def test_ror_results_in_negative_with_carry(self):
+    metadata = (0x01, 1, "A")
+    inst = self.Instruction(metadata)
+
+    result = operations.ror(None, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x80)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 1)
     self.assertEqual(dc, 1)
 
 

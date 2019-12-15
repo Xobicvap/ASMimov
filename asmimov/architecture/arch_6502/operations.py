@@ -76,22 +76,46 @@ def adc(system, instruction):
   l, r, dest = instruction.metadata()
   carry = system.status("C")
   decimal = system.status("D")
-  x = l + r + carry
-  
-  # supposedly this isn't valid for decimal mode but w/e
-  z = compute_z(x)
   if decimal == 1:
-    temp1 = l & 0x0f
-    temp2 = r & 0x0f
-    temp3 = temp1 + temp2 + carry
-    # this very well may be wrong
-    if temp3 > 9:
-      x = x + 6
-  n = compute_n(x)
-  v = compute_v(x, r, l)
-  c = 1 if x > 0xff else 0
-  x = x & 0xff
+    l_lo = l & 0xf
+    l_hi = (l & 0xf0) >> 4
+    r_lo = r & 0xf
+    r_hi = (r & 0xf0) >> 4
 
+    lo_nib = l_lo + r_lo + carry
+    hi_nib = l_hi + r_hi
+
+    #print("LO: " + str(lo_nib))
+    #print("HI: " + str(hi_nib))
+
+    if lo_nib > 9:
+      hi_nib = hi_nib + 1
+      lo_nib = lo_nib - 10
+
+    hi_dec = hi_nib * 10
+    temp = hi_dec + lo_nib
+
+    #print("TEMP: " + str(temp))
+
+    c = 1 if temp > 99 else 0
+    if c == 1:
+      temp = temp - 100
+
+    xstr = "0x" + str(temp)
+    x = int(xstr, 16)
+
+  else:
+    x = l + r + carry
+    c = 1 if x > 0xff else 0
+    x = x & 0xff
+
+  # n and z are valid in that they at least match the accumulator value
+  z = 1 if x == 0 and c == 0 else 0
+  n = compute_n(x)
+
+  # this is basically a crapshoot in decimal mode
+  v = compute_v(x, r, l)
+  
   return {
     dest: x,
     "P": {"N": n, "Z": z, "V": v, "C": c}
@@ -428,14 +452,24 @@ def t_inc_dec_base(result, dest):
 def compare(system, instruction):
   l, r, dest = instruction.metadata()
 
+  # not sure if this is correct for decimal mode
   x = l - r
-  c = 1 if x > 0xff else 0
+  c = 1 if l >= r else 0
   n = compute_n(x)
-  z = compute_z(x)
+  z = 1 if l == r else 0
 
   return {
     "P": {"N": n, "Z": z, "C": c}
   }
+
+def get_decimal_parts(l, r):
+  l_lo = l & 0xf
+  l_hi = (l & 0xf0) >> 4
+  r_lo = r & 0xf
+  r_hi = (r & 0xf0) >> 4
+
+  return (l_lo, l_hi, r_lo, r_hi)
+
 
 def branch(will_branch, system, instruction):
   l, r, dest = instruction.metadata()

@@ -342,7 +342,7 @@ def logical_and(system, instruction):
   z = compute_z(x)
   n = compute_n(x)
   return {
-    dest: v, 
+    dest: x, 
     "P": {"N": n, "Z": z}
   }
 
@@ -353,7 +353,7 @@ def ora(system, instruction):
   n = compute_n(x)
   
   return {
-    dest: v,
+    dest: x,
     "P": {"N": n, "Z": z}
   }
 
@@ -363,7 +363,7 @@ def eor(system, instruction):
   z = compute_z(x)
   n = compute_n(x)
   return {
-    dest: v,
+    dest: x,
     "P": {"N": n, "Z": z}
   }
 
@@ -371,7 +371,7 @@ def bit(system, instruction):
   l, r, dest = instruction.metadata()
   bit6 = 1 if r & 0x40 != 0 else 0
   bit7 = 1 if r & 0x80 != 0 else 0
-  z = 1 if l & r != 0 else 0
+  z = 1 if l & r == 0 else 0
   return {
     "P": {"N": bit7, "V": bit6, "Z": z}
   }

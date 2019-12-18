@@ -309,7 +309,7 @@ def jsr(system, instruction):
 
   return {
     "push": [pc_hi, pc_lo], 
-    dest: l
+    dest: jump_dest
   }
 
 def rti(system, instruction):

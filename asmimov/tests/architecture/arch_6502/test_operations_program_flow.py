@@ -145,3 +145,36 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
   def test_bcc_branches_negative_page_cross(self):
     self.negative_branching_test_page_cross(operations.bcc, 0)
 
+  # i don't think there's a lot of ways these could go wrong... ?
+  def test_jsr(self):
+    metadata = (0x9000, 0x8000, "PC")
+    inst = self.Instruction(metadata)
+
+    result = operations.jsr(None, inst)
+    dpc = result["PC"]
+    dpush = result["push"]
+
+    self.assertEqual(dpc, 0x9000)
+    self.assertEqual(len(dpush), 2)
+    self.assertEqual(dpush[0], 0x80)
+    self.assertEqual(dpush[1], 0x02)
+
+  def test_rti(self):
+    metadata = (0xa000, None, "PC")
+    inst = self.Instruction(metadata)
+
+    result = operations.rti(None, inst)
+    dpc = result["PC"]
+    self.assertEqual(result["pop"], 2)
+    self.assertEqual(dpc, 0xa000)
+
+  def test_rts(self):
+    metadata = (0x23ff, None, "PC")
+    inst = self.Instruction(metadata)
+
+    result = operations.rts(None, inst)
+    dpc = result["PC"]
+    self.assertEqual(result["pop"], 2)
+    self.assertEqual(dpc, 0x2400)
+
+

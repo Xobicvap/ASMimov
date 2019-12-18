@@ -276,34 +276,28 @@ def pla(system, instruction):
 
 # these could be simplified further into result_clear() vs result_set()
 def bmi(system, instruction):
-  metadata = instruction.metadata()
-  r = metadata[1]
-  return branch(r == 1, system, metadata)
+  r = instruction.metadata()[1]
+  return branch(r == 1, system, instruction)
 
 def bpl(system, instruction): 
-  metadata = instruction.metadata()
-  r = metadata[1]
-  return branch(r == 0, system, metadata)
+  r = instruction.metadata()[1]
+  return branch(r == 0, system, instruction)
 
 def bvc(system, instruction):
-  metadata = instruction.metadata()
-  r = metadata[1]
-  return branch(r == 0, system, metadata)
+  r = instruction.metadata()[1]
+  return branch(r == 0, system, instruction)
 
 def bvs(system, instruction):
-  metadata = instruction.metadata()
-  r = metadata[1]
-  return branch(r == 1, system, metadata)
+  r = instruction.metadata()[1]
+  return branch(r == 1, system, instruction)
 
 def bcc(system, instruction):
-  metadata = instruction.metadata()
-  r = metadata[1]
-  return branch(r == 0, system, metadata)
+  r = instruction.metadata()[1]
+  return branch(r == 0, system, instruction)
 
 def bcs(system, instruction):
-  metadata = instruction.metadata()
-  r = metadata[1],
-  return branch(r == 1, system, metadata)
+  r = instruction.metadata()[1]
+  return branch(r == 1, system, instruction)
 
 def jsr(system, instruction):
   jump_dest, pc, dest = instruction.metadata()
@@ -472,7 +466,8 @@ def get_decimal_parts(l, r):
 
 
 def branch(will_branch, system, instruction):
-  l, r, dest = instruction.metadata()
+  l, r, pc = instruction.metadata()
+  pc_disp, cycles = instruction.pc_metadata()
   branch_offset = l
   after_instruction = pc + pc_disp
   if will_branch:
@@ -487,5 +482,5 @@ def branch(will_branch, system, instruction):
     after_branch_disp_page = branch_disp & 0xff00
     if after_branch_disp_page != after_instruction_page:
       cycles = cycles + 1
-    return {"PC": branch_offset, "cycles": cycles}
+    return {"PC": branch_disp, "cycles": cycles}
   return {"PC": after_instruction, "cycles": cycles}

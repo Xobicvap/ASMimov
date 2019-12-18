@@ -140,10 +140,18 @@ class InstructionNode:
       self.dest_name
     )
 
+  def pc_metadata(self):
+    return (
+      self.pc_disp,
+      self.cycles
+    )
+
   def evaluate(self, system):
     changes = self.change_fxn(system, self)
-    changes["PC"] = system.cpu_register("PC") + self.pc_disp
-    changes["cycles"] = system.clock_cycles + self.cycles
+    if "PC" not in changes:
+      changes["PC"] = system.cpu_register("PC") + self.pc_disp
+    if "cycles" not in changes:
+      changes["cycles"] = system.clock_cycles + self.cycles
     return changes
 
 

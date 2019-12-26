@@ -160,13 +160,19 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
     self.assertEqual(dpush[1], 0x02)
 
   def test_rti(self):
-    metadata = (0xa000, None, "PC")
+    metadata = (0x0fc, None, None)
     inst = self.Instruction(metadata)
 
-    result = operations.rti(None, inst)
+    system = self.TestSystem(None, {0x01fd: 0b10110101, 0x01fe: 0x00, 0x01ff: 0xa0})
+
+    result = operations.rti(system, inst)
     dpc = result["PC"]
-    self.assertEqual(result["pop"], 2)
+    status = result["P"]
+    # i think this is 3 bytes? but the docs say Processor Status WORD... why WORD?
+    self.assertEqual(result["pop"], 3)
     self.assertEqual(dpc, 0xa000)
+    self.assertEqual(status, 0b10000101)
+
 
   def test_rts(self):
     metadata = (0x23ff, None, "PC")

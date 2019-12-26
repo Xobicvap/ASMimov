@@ -1,4 +1,25 @@
 #############################
+# BRK
+#############################
+def brk(system, instruction):
+  # "the program bank register (PB, the A16-A23 part of the address bus)
+  # is pushed onto the hardware stack" ... huh?
+
+  status, pc, dest = instruction.metadata()
+  
+  pc = pc + 2
+  pc_lo, pc_hi = break_16bit_addr(pc)
+
+  status = status | 0x30 # 00110000, sets bits 5 and 4 in the copy for stack
+  irq_vec = None # system.vector("IRQ/BRK")
+
+  return {
+    "push": [pc_hi, pc_lo, status],
+    dest: irq_vec
+  }
+
+
+#############################
 # NO OPERATION
 #############################
 
@@ -233,39 +254,51 @@ def cli(system, instruction):
 def sei(system, instruction):
   return {"P": {"I": 1}}
 
+def cld(system, instruction):
+  return {"P": {"D": 0}}
 
+def sed(system, instruction):
+  return {"P": {"D": 1}}
+
+def clv(system, instruction):
+  return {"P": {"V": 0}}
 
 ##########################
 # PUSH / POP
 ##########################
 
 def php(system, instruction): 
-  l, r, dest = instruction.metadata()
+  status, _, _ = instruction.metadata()
+
+  status = status | 0x30 # 00110000
 
   return {
-    "push": l
+    "push": status
   }
 
 def plp(system, instruction):
-  l, r, dest = instruction.metadata()
-
+  status, _, dest = instruction.metadata()
+  status = status & 0xcf # 11001111
+  
+  # this way we set P to popped status register (minus nonexistent B flags)
+  # and do the necessary stack pop
   return {
-    dest: l,
+    dest: status,
     "pop": 1
   }
 
 def pha(system, instruction):
-  l, r, dest = instruction.metadata()
+  a, _, _ = instruction.metadata()
 
   return {
     "push": l
   }
 
 def pla(system, instruction):
-  l, r, dest = instruction.metadata()
+  a, _, dest = instruction.metadata()
 
   return {
-    dest: l,
+    dest: a,
     "pop": 1
   }
 
@@ -308,15 +341,39 @@ def jsr(system, instruction):
   pc_lo, pc_hi = break_16bit_addr(pc)
 
   return {
+    # make sure the order here is correct such that the stack looks like:
+    # PC_LO, PC_HI
     "push": [pc_hi, pc_lo], 
     dest: jump_dest
   }
 
-def rti(system, instruction):
-  l, r, dest = instruction.metadata()
+def jmp(system, instruction):
+  jump_dest, _, dest = instruction.metadata()
+
   return {
-    dest: l,
-    "pop": 2
+    dest: jump_dest
+  }
+
+def rti(system, instruction):
+  # stack_ptr here is the actual pointer to stack
+  stack_ptr, _, _ = instruction.metadata()
+
+  # massage stack ptr to full 16-bit value
+  # the made-up 'pop_byte' / 'pop_word' pseudo-addressing modes 
+  # take care of this, but we have to manually do stack stuff for
+  # this instruction
+  stack_ptr = stack_ptr + 0x100 + 1
+  
+  status = system.read_direct(stack_ptr)
+  status = status & 0xcf # 11001111, ignore B flag
+
+  stack_ptr = stack_ptr + 1
+  pc = system.read_direct_absolute(stack_ptr)
+
+  return {
+    "PC": pc,
+    "P": status,
+    "pop": 3
   }
 
 def rts(system, instruction):

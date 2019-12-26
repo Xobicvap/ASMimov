@@ -15,6 +15,12 @@ class System:
     # if setting this to 0, make None the appropriate instruction
     self.memory_map = {}
     self.program_space = {}
+    self.vectors = {
+      "IRQ/BRK": 0xfffe,
+      "RESET": 0xfffc,
+      "NMI": 0xfffa
+    }
+
     for i in range(0, 0x10000):
       self.memory_map[i] = 0
       self.program_space[i] = None
@@ -44,17 +50,17 @@ class System:
       dest_status = self.register_map["P"]
       for flag, status_bit in status_reg.items():
         if flag == "N":
-          dest_status = dest_status | 0x80 if status_bit = 1 else dest_status & 0x7f
+          dest_status = dest_status | 0x80 if status_bit == 1 else dest_status & 0x7f
         elif flag == "V":
-          dest_status = dest_status | 0x40 if status_bit = 1 else dest_status & 0xbf
+          dest_status = dest_status | 0x40 if status_bit == 1 else dest_status & 0xbf
         elif flag == "D":
-          dest_status = dest_status | 0x08 if status_bit = 1 else dest_status & 0xf7
+          dest_status = dest_status | 0x08 if status_bit == 1 else dest_status & 0xf7
         elif flag == "I":
-          dest_status = dest_status | 0x04 if status_bit = 1 else dest_status & 0xfb
+          dest_status = dest_status | 0x04 if status_bit == 1 else dest_status & 0xfb
         elif flag == "Z":
-          dest_status = dest_status | 0x02 if status_bit = 1 else dest_status & 0xfd
+          dest_status = dest_status | 0x02 if status_bit == 1 else dest_status & 0xfd
         elif flag == "C":
-          dest_status = dest_status | 0x01 if status_bit = 1 else dest_status & 0xfe
+          dest_status = dest_status | 0x01 if status_bit == 1 else dest_status & 0xfe
         else:
           raise Exception("Invalid status flag written")
       self.cpu_register('P', dest_status)
@@ -77,8 +83,17 @@ class System:
   def read_direct(self, addr):
     return self.memory_map[addr]
 
+  def read_direct_absolute(self, addr):
+    addr_byte_lo = self.read_direct(addr)
+    addr_byte_hi = self.read_direct(addr + 1)
+
+    return (addr_byte_hi << 8) + addr_byte_lo
+
   def write(self, memory_addr, val):
     self.memory_map[memory_addr] = val
+
+  def vector(self, name):
+    return read_direct_absolute(self.vectors[name])
 
   def push(self, stack_ptr, val):
     try:
@@ -100,7 +115,10 @@ class System:
     for dest, val in change_map.items():
       if dest == "push":
         stack_ptr = self.cpu_register("SP")
-
+        self.push(stack_ptr, val)
+      elif dest == "pop":
+        stack_ptr = self.cpu_register("SP")
+        self.pop(stack_ptr, num_bytes)
       elif dest == "PC":
         self.cpu_register(dest, system.cpu_register(dest) + val)
       elif dest == "P":
@@ -120,18 +138,28 @@ class InstructionNode:
     self.pc_disp = pc_disp
     self.cycles = cycles
 
-  # use setattr instead and avoid duplication
   def set_operand1(self, system, operand):
-    if operand in system.cpu_registers():
-      self.operand1 = system.read(operand)
-    else:
-      self.operand1, self.cycles = system.read(operand, self.addressing_fxn, self.cycles)
+    self.set_operand(system, operand, 1)
 
   def set_operand2(self, system, operand):
+    self.set_operand(system, operand, 2)
+
+  def set_operand(self, system, operand, operand_num):
+    operand_name = "operand" + str(operand_num)
     if operand in system.cpu_registers():
-      self.operand2 = system.read(operand)
+      if operand == 'SP' and self.addressing_fxn is not None:
+        operand_value, cycle_count = system.read(operand, self.addressing_fxn, self.cycles)
+        setattr(self, operand_name, operand_value)
+        self.cycles = cycle_count
+      else:
+        operand_value = system.read(operand)
+        setattr(self, operand_name, operand_value)
+    elif operand is not None:
+      operand_value, cycle_count = system.read(operand, self.addressing_fxn, self.cycles)
+      setattr(self, operand_name, operand_value)
+      self.cycles = cycle_count
     else:
-      self.operand2, self.cycles = system.read(operand, self.addressing_fxn, self.cycles)
+      setattr(self, operand_name, None)
 
   def metadata(self):
     return (

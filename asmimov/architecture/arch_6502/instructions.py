@@ -15,8 +15,16 @@ from operations import *
 
 
 instruction_tuples = {
-#  0x00: (
-#    0x01: (
+  # how do we set this?
+  0x00: (
+    brk,
+    None,
+    "P",
+    "PC",
+    "PC",
+    2,
+    7
+  ),
   0x01: (
     ora,
     indexed_indirect,
@@ -334,10 +342,12 @@ instruction_tuples = {
   ),
   0x40: (
     rti,
-    pop_addr,
+    None,
     "SP",
     None,
-    "PC",
+    # it's not _really_ none, but it sets two things at once 
+    # which doesn't have a paradigm
+    None,
     1,
     6
   ),
@@ -451,7 +461,7 @@ instruction_tuples = {
   ),
   0x56: (
     lsr,
-    zero_page_x
+    zero_page_x,
     "operand",
     None,
     "operand",
@@ -518,7 +528,7 @@ instruction_tuples = {
     zero_page,
     "operand",
     "C",
-    "operand"
+    "operand",
     2,
     5
   ),

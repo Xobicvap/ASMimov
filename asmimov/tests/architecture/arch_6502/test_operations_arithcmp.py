@@ -4,14 +4,6 @@ from architecture.arch_6502 import operations
 
 class OperationsArithmeticTest(test_operations.OperationsTest):
 
-  class TestSystem:
-    def __init__(self, statuses={}):
-      self.statuses = statuses
-
-    def status(self, x):
-      return self.statuses[x]
-
-
   def test_adc_simple(self):
     metadata = (0x01, 0x01, "A")
     sys = self.TestSystem({"C": 0, "D": 0})

@@ -1,13 +1,16 @@
+def STACK_PTR_DISPLACEMENT_POP():
+  return 0x101
+
 def pop_byte(system, operand, cycles):
   # don't do the stack_pointer displacement here so we can 
   # track it in changes
   stack_ptr = system.cpu_register(operand)
-  stack_ptr = stack_ptr + 1
+  stack_ptr = stack_ptr + STACK_PTR_DISPLACEMENT_POP()
   return system.read_direct(stack_ptr)
 
 def pop_word(system, operand, cycles):
   stack_ptr = system.cpu_register(operand)
-  stack_ptr = stack_ptr + 1
+  stack_ptr = stack_ptr + STACK_PTR_DISPLACEMENT_POP()
   addr_lo = system.read_direct(stack_ptr)
   addr_hi = system.read_direct(stack_ptr+1)
 

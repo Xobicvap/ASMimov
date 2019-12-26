@@ -166,6 +166,9 @@ def dey(system, instruction):
 def dex(system, instruction):
   return decrement(system, instruction)
 
+def dec(system, instruction):
+  return decrement(system, instruction)
+
 def tax(system, instruction):
   return transfer(system, instruction)
 
@@ -192,9 +195,6 @@ def iny(system, instruction):
   return increment(system, instruction)
 
 def inc(system, instruction):
-  return increment(system, instruction)
-
-def dec(system, instruction):
   return increment(system, instruction)
 
 

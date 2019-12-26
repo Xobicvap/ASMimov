@@ -100,6 +100,21 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
   def test_bcs_branches_negative_page_cross(self):
     self.negative_branching_test_page_cross(operations.bcs, 1)
 
+  def test_beq_does_not_branch(self):
+    self.non_branching_test(operations.beq, 0)
+
+  def test_beq_branches_forward(self):
+    self.forward_branching_test(operations.beq, 1)
+
+  def test_beq_branches_forward_page_cross(self):
+    self.forward_branching_test(operations.beq, 1)
+  
+  def test_beq_branches_negative(self):
+    self.negative_branching_test(operations.beq, 1)
+
+  def test_beq_branches_negative_page_cross(self):
+    self.negative_branching_test_page_cross(operations.beq, 1)
+
   def test_bpl_does_not_branch(self):
     self.non_branching_test(operations.bpl, 1)
 
@@ -145,6 +160,21 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
   def test_bcc_branches_negative_page_cross(self):
     self.negative_branching_test_page_cross(operations.bcc, 0)
 
+  def test_bne_does_not_branch(self):
+    self.non_branching_test(operations.bne, 1)
+
+  def test_bne_branches_forward(self):
+    self.forward_branching_test(operations.bne, 0)
+
+  def test_bne_branches_forward_page_cross(self):
+    self.forward_branching_test(operations.bne, 0)
+  
+  def test_bne_branches_negative(self):
+    self.negative_branching_test(operations.bne, 0)
+
+  def test_bne_branches_negative_page_cross(self):
+    self.negative_branching_test_page_cross(operations.bne, 0)
+
   # i don't think there's a lot of ways these could go wrong... ?
   def test_jsr(self):
     metadata = (0x9000, 0x8000, "PC")
@@ -159,6 +189,31 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
     self.assertEqual(dpush[0], 0x80)
     self.assertEqual(dpush[1], 0x02)
 
+  def test_jmp(self):
+    metadata = (0x1234, None, "PC")
+    inst = self.Instruction(metadata)
+
+    result = operations.jmp(None, inst)
+    dpc = result["PC"]
+
+    self.assertEqual(dpc, 0x1234)
+
+  def test_brk(self):
+    metadata = (0b01001001, 0x7800, "PC")
+    inst = self.Instruction(metadata)
+
+    system = self.TestSystem(None, {0xfffe: 0x80, 0xffff: 0x98}, {"IRQ/BRK": 0xfffe})
+
+    result = operations.brk(system, inst)
+    dpc = result["PC"]
+    push_bytes = result["push"]
+
+    self.assertEqual(dpc, 0x9880)
+    self.assertEqual(len(push_bytes), 3)
+    self.assertEqual(push_bytes[0], 0x78)
+    self.assertEqual(push_bytes[1], 0x02)
+    self.assertEqual(push_bytes[2], 0b01111001)
+
   def test_rti(self):
     metadata = (0x0fc, None, None)
     inst = self.Instruction(metadata)
@@ -172,7 +227,6 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
     self.assertEqual(result["pop"], 3)
     self.assertEqual(dpc, 0xa000)
     self.assertEqual(status, 0b10000101)
-
 
   def test_rts(self):
     metadata = (0x23ff, None, "PC")

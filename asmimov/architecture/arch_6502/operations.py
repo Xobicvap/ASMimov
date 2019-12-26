@@ -1,30 +1,10 @@
 #############################
-# BRK
-#############################
-def brk(system, instruction):
-  # "the program bank register (PB, the A16-A23 part of the address bus)
-  # is pushed onto the hardware stack" ... huh?
-
-  status, pc, dest = instruction.metadata()
-  
-  pc = pc + 2
-  pc_lo, pc_hi = break_16bit_addr(pc)
-
-  status = status | 0x30 # 00110000, sets bits 5 and 4 in the copy for stack
-  irq_vec = None # system.vector("IRQ/BRK")
-
-  return {
-    "push": [pc_hi, pc_lo, status],
-    dest: irq_vec
-  }
-
-
-#############################
 # NO OPERATION
 #############################
 
 def nop(system, instruction):
   return {}
+
 
 #############################
 # SHIFT / ROTATE
@@ -86,7 +66,6 @@ def lsr(system, instruction):
     dest: x,
     "P": {"N": n, "Z": z, "C": c}
   }
-
 
 
 #################################
@@ -212,6 +191,11 @@ def inx(system, instruction):
 def iny(system, instruction):
   return increment(system, instruction)
 
+def inc(system, instruction):
+  return increment(system, instruction)
+
+def dec(system, instruction):
+  return increment(system, instruction)
 
 
 ##########################
@@ -235,7 +219,6 @@ def ldy(system, instruction):
 
 def ldx(system, instruction):
   return move(system, instruction, True)
-
 
 
 ##########################
@@ -262,6 +245,7 @@ def sed(system, instruction):
 
 def clv(system, instruction):
   return {"P": {"V": 0}}
+
 
 ##########################
 # PUSH / POP
@@ -332,6 +316,14 @@ def bcs(system, instruction):
   r = instruction.metadata()[1]
   return branch(r == 1, system, instruction)
 
+def bne(system, instruction):
+  r = instruction.metadata()[1]
+  return branch(r == 0, system, instruction)
+
+def beq(system, instruction):
+  r = instruction.metadata()[1]
+  return branch(r == 1, system, instruction)
+
 def jsr(system, instruction):
   jump_dest, pc, dest = instruction.metadata()
 
@@ -352,6 +344,23 @@ def jmp(system, instruction):
 
   return {
     dest: jump_dest
+  }
+
+def brk(system, instruction):
+  # "the program bank register (PB, the A16-A23 part of the address bus)
+  # is pushed onto the hardware stack" ... huh?
+
+  status, pc, dest = instruction.metadata()
+  
+  pc = pc + 2
+  pc_lo, pc_hi = break_16bit_addr(pc)
+
+  status = status | 0x30 # 00110000, sets bits 5 and 4 in the copy for stack
+  irq_vec = system.vector("IRQ/BRK")
+
+  return {
+    "push": [pc_hi, pc_lo, status],
+    dest: irq_vec
   }
 
 def rti(system, instruction):

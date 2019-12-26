@@ -93,7 +93,7 @@ class System:
     self.memory_map[memory_addr] = val
 
   def vector(self, name):
-    return read_direct_absolute(self.vectors[name])
+    return self.read_direct_absolute(self.vectors[name])
 
   def push(self, stack_ptr, val):
     try:

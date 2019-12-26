@@ -275,7 +275,7 @@ def pha(system, instruction):
   a, _, _ = instruction.metadata()
 
   return {
-    "push": l
+    "push": a
   }
 
 def pla(system, instruction):

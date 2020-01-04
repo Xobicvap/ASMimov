@@ -85,9 +85,6 @@ def adc(system, instruction):
     lo_nib = l_lo + r_lo + carry
     hi_nib = l_hi + r_hi
 
-    #print("LO: " + str(lo_nib))
-    #print("HI: " + str(hi_nib))
-
     if lo_nib > 9:
       hi_nib = hi_nib + 1
       lo_nib = lo_nib - 10
@@ -182,11 +179,10 @@ def tya(system, instruction):
   return transfer(system, instruction)
 
 def txs(system, instruction):
-  l, r, dest = instruction.metadata()
-  return { dest: l }
+  return xfer_stack_pointer(system, instruction)
 
 def tsx(system, instruction):
-  return transfer(system, instruction)
+  return xfer_stack_pointer(system, instruction)
 
 def inx(system, instruction):
   return increment(system, instruction)
@@ -499,6 +495,10 @@ def decrement(system, instruction):
 def transfer(system, instruction):
   l, r, dest = instruction.metadata()
   return t_inc_dec_base(l, dest)
+
+def xfer_stack_pointer(system, instruction):
+  l, r, dest = instruction.metadata()
+  return { dest: l }
 
 def t_inc_dec_base(result, dest):
   z = compute_z(result)

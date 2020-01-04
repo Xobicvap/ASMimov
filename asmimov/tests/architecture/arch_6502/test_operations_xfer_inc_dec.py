@@ -88,6 +88,72 @@ class OperationsTransferIncrementDecrementTest(test_operations.OperationsTest):
     metadata = (0xff, None, 0x4000)
     self.increment_test(metadata, operations.inc, 1, 0)
 
+  def test_tax_positive_nonzero(self):
+    metadata = (0x55, None, 'X')
+    self.transfer_test(metadata, operations.tax, 0, 0)
+
+  def test_tax_zero(self):
+    metadata = (0x00, None, 'X')
+    self.transfer_test(metadata, operations.tax, 1, 0)
+
+  def test_tax_negative(self):
+    metadata = (0xbb, None, 'X')
+    self.transfer_test(metadata, operations.tax, 0, 1)
+
+  def test_tay_positive_nonzero(self):
+    metadata = (0x38, None, 'Y')
+    self.transfer_test(metadata, operations.tay, 0, 0)
+
+  def test_tay_zero(self):
+    metadata = (0x00, None, 'Y')
+    self.transfer_test(metadata, operations.tay, 1, 0)
+
+  def test_tay_negative(self):
+    metadata = (0x9f, None, 'Y')
+    self.transfer_test(metadata, operations.tay, 0, 1)
+
+  def test_txa_positive_nonzero(self):
+    metadata = (0x1d, None, 'A')
+    self.transfer_test(metadata, operations.txa, 0, 0)
+
+  def test_txa_zero(self):
+    metadata = (0x00, None, 'A')
+    self.transfer_test(metadata, operations.txa, 1, 0)
+
+  def test_txa_negative(self):
+    metadata = (0xf4, None, 'A')
+    self.transfer_test(metadata, operations.txa, 0, 1)
+
+  def test_tya_positive_nonzero(self):
+    metadata = (0x6a, None, 'A')
+    self.transfer_test(metadata, operations.tya, 0, 0)
+
+  def test_tya_zero(self):
+    metadata = (0x00, None, 'A')
+    self.transfer_test(metadata, operations.tya, 1, 0)
+
+  def test_tya_negative(self):
+    metadata = (0xa9, None, 'A')
+    self.transfer_test(metadata, operations.tya, 0, 1)
+
+  def test_txs(self):
+    metadata = (0xff, None, 'SP')
+    v, _, dest = metadata
+    inst = self.Instruction(metadata)
+
+    result = operations.txs(None, inst)
+    dest_val = result[dest]
+    self.assertEqual(dest_val, v)
+
+  def test_tsx(self):
+    metadata = (0xe0, None, 'X')
+    v, _, dest = metadata
+    inst = self.Instruction(metadata)
+
+    result = operations.tsx(None, inst)
+    dest_val = result[dest]
+    self.assertEqual(dest_val, v)
+
   def decrement_test(self, metadata, op, expect_z, expect_n):
     v, _, dest = metadata
     inst = self.Instruction(metadata)
@@ -120,4 +186,16 @@ class OperationsTransferIncrementDecrementTest(test_operations.OperationsTest):
     self.assertEqual(z, expect_z)
     self.assertEqual(n, expect_n)
 
-  #def transfer_test(self):
+  def transfer_test(self, metadata, op, expect_z, expect_n):
+    v, _, dest = metadata
+    inst = self.Instruction(metadata)
+
+    result = op(None, inst)
+    dest_val = result[dest]
+    self.assertEqual(dest_val, v)
+    status = result["P"]
+    z = status["Z"]
+    n = status["N"]
+    self.assertEqual(z, expect_z)
+    self.assertEqual(n, expect_n)
+

@@ -77,10 +77,7 @@ def adc(system, instruction):
   carry = system.status("C")
   decimal = system.status("D")
   if decimal == 1:
-    l_lo = l & 0xf
-    l_hi = (l & 0xf0) >> 4
-    r_lo = r & 0xf
-    r_hi = (r & 0xf0) >> 4
+    l_lo, l_hi, r_lo, r_hi = get_decimal_parts(l, r)
 
     lo_nib = l_lo + r_lo + carry
     hi_nib = l_hi + r_hi
@@ -91,8 +88,6 @@ def adc(system, instruction):
 
     hi_dec = hi_nib * 10
     temp = hi_dec + lo_nib
-
-    #print("TEMP: " + str(temp))
 
     c = 1 if temp > 99 else 0
     if c == 1:
@@ -120,24 +115,42 @@ def adc(system, instruction):
 
 def sbc(system, instruction):
   l, r, dest = instruction.metadata()
-  carry = system.status("C")
+  carry = 1 if system.status("C") == 0 else 0
   decimal = system.status("D")
-  x = l - r - carry
-
-  n = compute_n(x)
-  z = compute_z(x)
-  v = compute_v(x, r, l)
 
   if decimal == 1:
-    temp1 = l & 0x0f
-    temp2 = r & 0x0f
-    temp3 = temp1 - carry 
-    x = x - 6 if temp3 < temp2 else x
-    if x > 0x99:
-      x = x - 0x60
+    l_lo, l_hi, r_lo, r_hi = get_decimal_parts(l, r)
 
-  c = 1 if x > 0xff else 0
-  x = x & 0xff
+    # carry logic may be wrong below
+    if l_lo < r_lo:
+      l_lo = l_lo + 10
+      l_hi = l_hi - 1
+
+    lo_nib = l_lo - r_lo
+    hi_nib = l_hi - r_hi
+
+    hi_dec = hi_nib * 10
+    temp = hi_dec + lo_nib if hi_dec > 0 else hi_dec - lo_nib
+
+    c = 0 if temp < 0 else 1
+    if c == 0:
+      temp = 100 + temp
+
+    xstr = "0x" + str(temp)
+    x = int(xstr, 16)
+
+  else:
+    x = l - r - carry
+    c = 0 if x < 0 else 1
+    x = x & 0xff # this may be wrong
+
+  # n and z are valid in that they at least match the accumulator value
+  z = 1 if x == 0 and c == 0 else 0
+  n = compute_n(x)
+
+  # this is basically a crapshoot in decimal mode
+  v = compute_v(x, r, l)
+  
   return {
     dest: x,
     "P": {"N": n, "Z": z, "V": v, "C": c}
@@ -529,7 +542,6 @@ def get_decimal_parts(l, r):
   r_hi = (r & 0xf0) >> 4
 
   return (l_lo, l_hi, r_lo, r_hi)
-
 
 def branch(will_branch, system, instruction):
   l, r, pc = instruction.metadata()

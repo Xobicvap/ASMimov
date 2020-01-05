@@ -117,7 +117,89 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
     self.assertEqual(dn, 1)
     self.assertEqual(dc, 0)
 
-  # NEED TO DO SUBTRACTION
+
+  def test_sbc_simple(self):
+    metadata = (0x02, 0x01, "A")
+    # for simple cases like this we'll assume the programmer did the
+    # correct thing and _set_ the carry as you should before SBC
+    sys = self.TestSystem({"C": 1, "D": 0})
+    inst = self.Instruction(metadata)
+
+    result = operations.sbc(sys, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x01)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_sbc_no_carry_simple(self):
+    metadata = (0x03, 0x01, "A")
+    sys = self.TestSystem({"C": 0, "D": 0})
+    inst = self.Instruction(metadata)
+
+    result = operations.sbc(sys, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x01)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_sbc_decimal_simple(self):
+    metadata = (0x65, 0x23, "A")
+    sys = self.TestSystem({"C": 1, "D": 1})
+    inst = self.Instruction(metadata)
+
+    result = operations.sbc(sys, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x42)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_sbc_decimal_with_borrow(self):
+    metadata = (0x81, 0x68, "A")
+    sys = self.TestSystem({"C": 1, "D": 1})
+    inst = self.Instruction(metadata)
+
+    result = operations.sbc(sys, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x13)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 0)
+    self.assertEqual(dc, 1)
+
+  def test_sbc_decimal_no_carry_out_negative(self):
+    metadata = (0x42, 0x62, "A")
+    sys = self.TestSystem({"C": 1, "D": 1})
+    inst = self.Instruction(metadata)
+
+    result = operations.sbc(sys, inst)
+    dv = result["A"]
+    dp = result["P"]
+    dz = dp["Z"]
+    dn = dp["N"]
+    dc = dp["C"]
+    self.assertEqual(dv, 0x80)
+    self.assertEqual(dz, 0)
+    self.assertEqual(dn, 1)
+    self.assertEqual(dc, 0)
+
 
   def test_cmp_result_negative(self):
     metadata = (0x23, 0x50, '')

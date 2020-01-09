@@ -1,6 +1,6 @@
 import unittest
-from tests.architecture.arch_6502 import test_operations
-from architecture.arch_6502 import operations
+from tests.architecture.arch_6502.operations import test_operations
+from architecture.arch_6502.cpu import operations
 
 class OperationsTransferIncrementDecrementTest(test_operations.OperationsTest):
 

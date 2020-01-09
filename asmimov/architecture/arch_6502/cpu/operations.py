@@ -2,7 +2,7 @@
 # NO OPERATION
 #############################
 
-def nop(system, instruction):
+def nop(cpu_container, instruction):
   return {}
 
 
@@ -10,7 +10,7 @@ def nop(system, instruction):
 # SHIFT / ROTATE
 ############################
 
-def rol(system, instruction):
+def rol(cpu_container, instruction):
   l, carry, dest = instruction.metadata()
   bit7 = l & 0x80
   x = (l << 1) & 0xff
@@ -25,7 +25,7 @@ def rol(system, instruction):
     "P": {"N": n, "Z": z, "C": c}
   }
 
-def ror(system, instruction):
+def ror(cpu_container, instruction):
   l, carry, dest = instruction.metadata()
   bit0 = l & 0x01
   # i _think_ for this and lsr this is sufficient, and no stray upper bits
@@ -42,7 +42,7 @@ def ror(system, instruction):
     "P": {"N": n, "Z": z, "C": c}
   }
 
-def asl(system, instruction):
+def asl(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   bit7 = l & 0x80
   x = (l << 1) & 0xff
@@ -55,7 +55,7 @@ def asl(system, instruction):
     "P": {"N": n, "Z": z, "C": c}
   }
 
-def lsr(system, instruction):
+def lsr(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   bit0 = l & 0x01
   x = l >> 1
@@ -72,10 +72,10 @@ def lsr(system, instruction):
 # ADDITION / SUBTRACTION / COMPARISON
 #################################
 
-def adc(system, instruction):
+def adc(cpu_container, instruction):
   l, r, dest = instruction.metadata()
-  carry = system.status("C")
-  decimal = system.status("D")
+  carry = cpu_container.status("C")
+  decimal = cpu_container.status("D")
   if decimal == 1:
     l_lo, l_hi, r_lo, r_hi = get_decimal_parts(l, r)
 
@@ -113,10 +113,10 @@ def adc(system, instruction):
     "P": {"N": n, "Z": z, "V": v, "C": c}
   }
 
-def sbc(system, instruction):
+def sbc(cpu_container, instruction):
   l, r, dest = instruction.metadata()
-  carry = 1 if system.status("C") == 0 else 0
-  decimal = system.status("D")
+  carry = 1 if cpu_container.status("C") == 0 else 0
+  decimal = cpu_container.status("D")
 
   if decimal == 1:
     l_lo, l_hi, r_lo, r_hi = get_decimal_parts(l, r)
@@ -156,103 +156,103 @@ def sbc(system, instruction):
     "P": {"N": n, "Z": z, "V": v, "C": c}
   }
 
-def cmp8(system, instruction):
-  return compare(system, instruction)
+def cmp8(cpu_container, instruction):
+  return compare(cpu_container, instruction)
 
-def cpx(system, instruction):
-  return compare(system, instruction)
+def cpx(cpu_container, instruction):
+  return compare(cpu_container, instruction)
 
-def cpy(system, instruction):
-  return compare(system, instruction)
+def cpy(cpu_container, instruction):
+  return compare(cpu_container, instruction)
 
 
 ##########################
 # TRANSFER / INCREMENT / DECREMENT
 ##########################
 
-def dey(system, instruction):
-  return decrement(system, instruction)
+def dey(cpu_container, instruction):
+  return decrement(cpu_container, instruction)
 
-def dex(system, instruction):
-  return decrement(system, instruction)
+def dex(cpu_container, instruction):
+  return decrement(cpu_container, instruction)
 
-def dec(system, instruction):
-  return decrement(system, instruction)
+def dec(cpu_container, instruction):
+  return decrement(cpu_container, instruction)
 
-def tax(system, instruction):
-  return transfer(system, instruction)
+def tax(cpu_container, instruction):
+  return transfer(cpu_container, instruction)
 
-def tay(system, instruction):
-  return transfer(system, instruction)
+def tay(cpu_container, instruction):
+  return transfer(cpu_container, instruction)
 
-def txa(system, instruction):
-  return transfer(system, instruction)
+def txa(cpu_container, instruction):
+  return transfer(cpu_container, instruction)
 
-def tya(system, instruction):
-  return transfer(system, instruction)
+def tya(cpu_container, instruction):
+  return transfer(cpu_container, instruction)
 
-def txs(system, instruction):
-  return xfer_stack_pointer(system, instruction)
+def txs(cpu_container, instruction):
+  return xfer_stack_pointer(cpu_container, instruction)
 
-def tsx(system, instruction):
-  return xfer_stack_pointer(system, instruction)
+def tsx(cpu_container, instruction):
+  return xfer_stack_pointer(cpu_container, instruction)
 
-def inx(system, instruction):
-  return increment(system, instruction)
+def inx(cpu_container, instruction):
+  return increment(cpu_container, instruction)
 
-def iny(system, instruction):
-  return increment(system, instruction)
+def iny(cpu_container, instruction):
+  return increment(cpu_container, instruction)
 
-def inc(system, instruction):
-  return increment(system, instruction)
+def inc(cpu_container, instruction):
+  return increment(cpu_container, instruction)
 
 
 ##########################
 # LOAD / STORE MEMORY
 ##########################
 
-def sta(system, instruction):
-  return move(system, instruction)
+def sta(cpu_container, instruction):
+  return move(cpu_container, instruction)
 
-def sty(system, instruction):
-  return move(system, instruction)
+def sty(cpu_container, instruction):
+  return move(cpu_container, instruction)
 
-def stx(system, instruction):
-  return move(system, instruction)
+def stx(cpu_container, instruction):
+  return move(cpu_container, instruction)
 
-def lda(system, instruction):
-  return move(system, instruction, True)
+def lda(cpu_container, instruction):
+  return move(cpu_container, instruction, True)
 
-def ldy(system, instruction):
-  return move(system, instruction, True)
+def ldy(cpu_container, instruction):
+  return move(cpu_container, instruction, True)
 
-def ldx(system, instruction):
-  return move(system, instruction, True)
+def ldx(cpu_container, instruction):
+  return move(cpu_container, instruction, True)
 
 
 ##########################
 # SET / CLEAR INSTRUCTIONS
 ##########################
 
-def clc(system, instruction):
+def clc(cpu_container, instruction):
   return {"P": {"C": 0}}
 
-def sec(system, instruction):
+def sec(cpu_container, instruction):
   return {"P": {"C": 1}}
 
-def cli(system, instruction):
+def cli(cpu_container, instruction):
   return {"P": {"I": 0}}
 
-def sei(system, instruction):
+def sei(cpu_container, instruction):
   return {"P": {"I": 1}}
 
-def cld(system, instruction):
+def cld(cpu_container, instruction):
   return {"P": {"D": 0}}
 
-def sed(system, instruction):
+def sed(cpu_container, instruction):
   return {"P": {"D": 1}}
 
-def clv(system, instruction):
+def clv(cpu_container, instruction):
   return {"P": {"V": 0}}
 
 
@@ -260,7 +260,7 @@ def clv(system, instruction):
 # PUSH / POP
 ##########################
 
-def php(system, instruction): 
+def php(cpu_container, instruction): 
   status, _, _ = instruction.metadata()
 
   status = status | 0x30 # 00110000
@@ -269,7 +269,7 @@ def php(system, instruction):
     "push": status
   }
 
-def plp(system, instruction):
+def plp(cpu_container, instruction):
   status, _, dest = instruction.metadata()
   status = status & 0xcf # 11001111
   
@@ -280,14 +280,14 @@ def plp(system, instruction):
     "pop": 1
   }
 
-def pha(system, instruction):
+def pha(cpu_container, instruction):
   a, _, _ = instruction.metadata()
 
   return {
     "push": a
   }
 
-def pla(system, instruction):
+def pla(cpu_container, instruction):
   a, _, dest = instruction.metadata()
 
   return {
@@ -301,39 +301,39 @@ def pla(system, instruction):
 #################################
 
 # these could be simplified further into result_clear() vs result_set()
-def bmi(system, instruction):
+def bmi(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 1, system, instruction)
+  return branch(r == 1, cpu_container, instruction)
 
-def bpl(system, instruction): 
+def bpl(cpu_container, instruction): 
   r = instruction.metadata()[1]
-  return branch(r == 0, system, instruction)
+  return branch(r == 0, cpu_container, instruction)
 
-def bvc(system, instruction):
+def bvc(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 0, system, instruction)
+  return branch(r == 0, cpu_container, instruction)
 
-def bvs(system, instruction):
+def bvs(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 1, system, instruction)
+  return branch(r == 1, cpu_container, instruction)
 
-def bcc(system, instruction):
+def bcc(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 0, system, instruction)
+  return branch(r == 0, cpu_container, instruction)
 
-def bcs(system, instruction):
+def bcs(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 1, system, instruction)
+  return branch(r == 1, cpu_container, instruction)
 
-def bne(system, instruction):
+def bne(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 0, system, instruction)
+  return branch(r == 0, cpu_container, instruction)
 
-def beq(system, instruction):
+def beq(cpu_container, instruction):
   r = instruction.metadata()[1]
-  return branch(r == 1, system, instruction)
+  return branch(r == 1, cpu_container, instruction)
 
-def jsr(system, instruction):
+def jsr(cpu_container, instruction):
   jump_dest, pc, dest = instruction.metadata()
 
   # the -1 here, though redundant, is just to show what it's _doing_
@@ -348,14 +348,14 @@ def jsr(system, instruction):
     dest: jump_dest
   }
 
-def jmp(system, instruction):
+def jmp(cpu_container, instruction):
   jump_dest, _, dest = instruction.metadata()
 
   return {
     dest: jump_dest
   }
 
-def brk(system, instruction):
+def brk(cpu_container, instruction):
   # "the program bank register (PB, the A16-A23 part of the address bus)
   # is pushed onto the hardware stack" ... huh?
 
@@ -365,14 +365,14 @@ def brk(system, instruction):
   pc_lo, pc_hi = break_16bit_addr(pc)
 
   status = status | 0x30 # 00110000, sets bits 5 and 4 in the copy for stack
-  irq_vec = system.vector("IRQ/BRK")
+  irq_vec = cpu_container.vector("IRQ/BRK")
 
   return {
     "push": [pc_hi, pc_lo, status],
     dest: irq_vec
   }
 
-def rti(system, instruction):
+def rti(cpu_container, instruction):
   # stack_ptr here is the actual pointer to stack
   stack_ptr, _, _ = instruction.metadata()
 
@@ -382,11 +382,11 @@ def rti(system, instruction):
   # this instruction
   stack_ptr = stack_ptr + 0x100 + 1
   
-  status = system.read_direct(stack_ptr)
+  status = cpu_container.read_direct(stack_ptr)
   status = status & 0xcf # 11001111, ignore B flag
 
   stack_ptr = stack_ptr + 1
-  pc = system.read_direct_absolute(stack_ptr)
+  pc = cpu_container.read_direct_absolute(stack_ptr)
 
   return {
     "PC": pc,
@@ -394,7 +394,7 @@ def rti(system, instruction):
     "pop": 3
   }
 
-def rts(system, instruction):
+def rts(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   return {
     dest: l + 1,
@@ -405,7 +405,7 @@ def rts(system, instruction):
 # BITWISE LOGICAL OPERATORS
 ###################################
 
-def logical_and(system, instruction):
+def logical_and(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   x = l & r
   z = compute_z(x)
@@ -415,7 +415,7 @@ def logical_and(system, instruction):
     "P": {"N": n, "Z": z}
   }
 
-def ora(system, instruction):
+def ora(cpu_container, instruction):
   l, r, dest = instruction.metadata()  
   x = l | r
   z = compute_z(x)
@@ -426,7 +426,7 @@ def ora(system, instruction):
     "P": {"N": n, "Z": z}
   }
 
-def eor(system, instruction):
+def eor(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   x = l ^ r
   z = compute_z(x)
@@ -436,7 +436,7 @@ def eor(system, instruction):
     "P": {"N": n, "Z": z}
   }
 
-def bit(system, instruction):
+def bit(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   bit6 = 1 if r & 0x40 != 0 else 0
   bit7 = 1 if r & 0x80 != 0 else 0
@@ -475,7 +475,7 @@ def compute_v(x, src, a):
   temp2 = 1 if temp1 & 0x80 == 0x80 else 0
   return temp2
 
-def move(system, instruction, load=False):
+def move(cpu_container, instruction, load=False):
   l, r, dest = instruction.metadata()
   
   if load:
@@ -491,25 +491,25 @@ def move(system, instruction, load=False):
     dest: l
   }
 
-def increment(system, instruction):
+def increment(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   l = l + 1
   if l > 0xff:
     l = 0
   return t_inc_dec_base(l, dest)
 
-def decrement(system, instruction):
+def decrement(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   l = l - 1
   if l < 0:
     l = 0xff
   return t_inc_dec_base(l, dest)
 
-def transfer(system, instruction):
+def transfer(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   return t_inc_dec_base(l, dest)
 
-def xfer_stack_pointer(system, instruction):
+def xfer_stack_pointer(cpu_container, instruction):
   l, r, dest = instruction.metadata()
   return { dest: l }
 
@@ -522,7 +522,7 @@ def t_inc_dec_base(result, dest):
     "P": {"Z": z, "N": n}
   }
 
-def compare(system, instruction):
+def compare(cpu_container, instruction):
   l, r, dest = instruction.metadata()
 
   # not sure if this is correct for decimal mode
@@ -543,7 +543,7 @@ def get_decimal_parts(l, r):
 
   return (l_lo, l_hi, r_lo, r_hi)
 
-def branch(will_branch, system, instruction):
+def branch(will_branch, cpu_container, instruction):
   l, r, pc = instruction.metadata()
   pc_disp, cycles = instruction.pc_metadata()
   branch_offset = l

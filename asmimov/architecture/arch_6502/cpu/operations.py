@@ -386,7 +386,7 @@ def rti(cpu_container, instruction):
   status = status & 0xcf # 11001111, ignore B flag
 
   stack_ptr = stack_ptr + 1
-  pc = cpu_container.read_direct_absolute(stack_ptr)
+  pc = cpu_container.read_absolute_address(stack_ptr)
 
   return {
     "PC": pc,

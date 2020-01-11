@@ -1,27 +1,49 @@
-class System:
+from random import randrange
 
-  def __init__(self):
+def set_memory_map_byte():
+  return randrange(0, 0x100)
+
+
+class CPUContainer:
+  """
+  Yeah, it's called a "CPU container" even though it also contains memory.
+  If you have a better name, I'm all ears...
+
+  By default, initialize everything randomly. For testing, allow for specific
+  registers and memory to be set.
+  """
+  def __init__(self, a=None, x=None, y=None, pc=None, p=None, sp=None, memory={}):
+    a = set_memory_map_byte() if a is None else a
+    x = set_memory_map_byte() if x is None else x
+    y = set_memory_map_byte() if y is None else y
+    pc = 0x400 if pc is None else pc
+    p = 0 if p is None else p
+    sp = set_memory_map_byte() if sp is None else sp
     self.register_map = {
-      "A": 0,
-      "X": 0,
-      "Y": 0,
-      "PC": 0x400,
-      "P": 0,
-      "SP": 0x1ff
+      "A": a,
+      "X": x,
+      "Y": y,
+      "PC": pc,
+      "P": p,
+      "SP": sp
     }
+
     self.clock_cycles = 0
-    # if setting this to 0, make None the appropriate instruction
-    self.memory_map = {}
+
+    # this is irrelevant
     self.program_space = {}
+
     self.vectors = {
       "IRQ/BRK": 0xfffe,
       "RESET": 0xfffc,
       "NMI": 0xfffa
     }
 
-    for i in range(0, 0x10000):
-      self.memory_map[i] = 0
-      self.program_space[i] = None
+    # this gets set to random bytes because that's how the real world works
+    if len(memory) == 0:
+      for i in range(0, 0x10000):
+        memory[i] = 0
+    self.memory_map = memory
 
   def status(self, flag=None):
     status_byte = self.register_map["P"]
@@ -29,41 +51,38 @@ class System:
       return status_byte
 
     if flag == "N":
-      return status_byte & 0x80
+      return 1 if status_byte & 0x80 == 0x80 else 0
     elif flag == "V":
-      return status_byte & 0x40
+      return 1 if status_byte & 0x40 == 0x40 else 0
     elif flag == "D":
-      return status_byte & 0x08
+      return 1 if status_byte & 0x08 == 0x08 else 0
     elif flag == "I":
-      return status_byte & 0x04
+      return 1 if status_byte & 0x04 == 0x04 else 0
     elif flag == "Z":
-      return status_byte & 0x02
+      return 1 if status_byte & 0x02 == 0x02 else 0
     elif flag == "C":
-      return status_byte & 0x01
+      return 1 if status_byte & 0x01 == 0x01 else 0
     else:
       raise Exception("Invalid status flag requested")
 
   def status_write(self, status_reg):
-    try:
-      dest_status = self.register_map["P"]
-      for flag, status_bit in status_reg.items():
-        if flag == "N":
-          dest_status = dest_status | 0x80 if status_bit == 1 else dest_status & 0x7f
-        elif flag == "V":
-          dest_status = dest_status | 0x40 if status_bit == 1 else dest_status & 0xbf
-        elif flag == "D":
-          dest_status = dest_status | 0x08 if status_bit == 1 else dest_status & 0xf7
-        elif flag == "I":
-          dest_status = dest_status | 0x04 if status_bit == 1 else dest_status & 0xfb
-        elif flag == "Z":
-          dest_status = dest_status | 0x02 if status_bit == 1 else dest_status & 0xfd
-        elif flag == "C":
-          dest_status = dest_status | 0x01 if status_bit == 1 else dest_status & 0xfe
-        else:
-          raise Exception("Invalid status flag written")
+    dest_status = self.register_map["P"]
+    for flag, status_bit in status_reg.items():
+      if flag == "N":
+        dest_status = dest_status | 0x80 if status_bit == 1 else dest_status & 0x7f
+      elif flag == "V":
+        dest_status = dest_status | 0x40 if status_bit == 1 else dest_status & 0xbf
+      elif flag == "D":
+        dest_status = dest_status | 0x08 if status_bit == 1 else dest_status & 0xf7
+      elif flag == "I":
+        dest_status = dest_status | 0x04 if status_bit == 1 else dest_status & 0xfb
+      elif flag == "Z":
+        dest_status = dest_status | 0x02 if status_bit == 1 else dest_status & 0xfd
+      elif flag == "C":
+        dest_status = dest_status | 0x01 if status_bit == 1 else dest_status & 0xfe
+      else:
+        raise Exception("Invalid status flag written")
       self.cpu_register('P', dest_status)
-    except:
-      self.cpu_register('P', status_reg)
 
   def cpu_registers(self):
     return self.register_map.keys()
@@ -81,7 +100,7 @@ class System:
   def read_direct(self, addr):
     return self.memory_map[addr]
 
-  def read_direct_absolute(self, addr):
+  def read_absolute_address(self, addr):
     addr_byte_lo = self.read_direct(addr)
     addr_byte_hi = self.read_direct(addr + 1)
 
@@ -91,7 +110,7 @@ class System:
     self.memory_map[memory_addr] = val
 
   def vector(self, name):
-    return self.read_direct_absolute(self.vectors[name])
+    return self.read_absolute_address(self.vectors[name])
 
   def push(self, stack_ptr, val):
     try:
@@ -99,12 +118,13 @@ class System:
         self.write(stack_ptr, v)
         stack_ptr = stack_ptr - 1
     except TypeError:
-      self.write(stack_ptr, v)
-      stack_ptr = stack_ptr -1
+      self.write(stack_ptr, val)
+      stack_ptr = stack_ptr - 1
     self.cpu_register("SP", stack_ptr)
 
   def pop(self, stack_ptr, num_bytes):
     for i in range(1, num_bytes + 1):
+      # warn on stack under/overflow?
       stack_ptr = stack_ptr + 1
       self.write(stack_ptr, 0)
     self.cpu_register("SP", stack_ptr)
@@ -116,9 +136,9 @@ class System:
         self.push(stack_ptr, val)
       elif dest == "pop":
         stack_ptr = self.cpu_register("SP")
-        self.pop(stack_ptr, num_bytes)
+        self.pop(stack_ptr, len(val))
       elif dest == "PC":
-        self.cpu_register(dest, system.cpu_register(dest) + val)
+        self.cpu_register(dest, self.cpu_register(dest) + val)
       elif dest == "P":
         self.status_write(val)
       elif dest in ['A', 'X', 'Y']:

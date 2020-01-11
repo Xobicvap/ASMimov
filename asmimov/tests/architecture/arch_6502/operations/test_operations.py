@@ -27,12 +27,12 @@ class OperationsTest(unittest.TestCase):
     def read_direct(self, addr):
       return self.memory[addr]
 
-    def read_direct_absolute(self, addr):
+    def read_absolute_address(self, addr):
       addr_byte_lo = self.read_direct(addr)
       addr_byte_hi = self.read_direct(addr + 1)
       return (addr_byte_hi << 8) + addr_byte_lo
 
     def vector(self, name):
-      return self.read_direct_absolute(self.vectors[name])
+      return self.read_absolute_address(self.vectors[name])
  
 

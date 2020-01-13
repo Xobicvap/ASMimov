@@ -112,37 +112,12 @@ class CPUContainer:
   def vector(self, name):
     return self.read_absolute_address(self.vectors[name])
 
-  def push(self, stack_ptr, val):
-    try:
-      for v in val:
-        self.write(stack_ptr, v)
-        stack_ptr = stack_ptr - 1
-    except TypeError:
-      self.write(stack_ptr, val)
-      stack_ptr = stack_ptr - 1
-    self.cpu_register("SP", stack_ptr)
-
-  def pop(self, stack_ptr, num_bytes):
-    for i in range(1, num_bytes + 1):
-      # warn on stack under/overflow?
-      stack_ptr = stack_ptr + 1
-      self.write(stack_ptr, 0)
-    self.cpu_register("SP", stack_ptr)
-
   def change(self, **change_map):
     for dest, val in change_map.items():
-      if dest == "push":
-        stack_ptr = self.cpu_register("SP")
-        self.push(stack_ptr, val)
-      elif dest == "pop":
-        stack_ptr = self.cpu_register("SP")
-        self.pop(stack_ptr, len(val))
-      elif dest == "PC":
-        self.cpu_register(dest, self.cpu_register(dest) + val)
-      elif dest == "P":
+      if dest == "P":
         self.status_write(val)
-      elif dest in ['A', 'X', 'Y']:
+      elif dest in ['A', 'X', 'Y', 'SP', 'PC']:
         self.cpu_register(dest, val)
       else:
-        # figure out how we do I/O registers later
+        # i/o isn't part of this, this is pure cpu, so no worries
         self.write(dest, val)

@@ -263,36 +263,43 @@ def clv(cpu_container, instruction):
 def php(cpu_container, instruction): 
   status, _, _ = instruction.metadata()
 
-  status = status | 0x30 # 00110000
+  status = status | 0x30  # 00110000
+  stack_ptr = cpu_container.cpu_register("SP")
 
   return {
-    "push": status
+    "SP": stack_ptr - 1,
+    stack_ptr + 0x100: status
   }
 
 def plp(cpu_container, instruction):
   status, _, dest = instruction.metadata()
   status = status & 0xcf # 11001111
+
+  stack_ptr = cpu_container.cpu_register("SP")
   
   # this way we set P to popped status register (minus nonexistent B flags)
   # and do the necessary stack pop
   return {
     dest: status,
-    "pop": 1
+    "SP": stack_ptr + 1
   }
 
 def pha(cpu_container, instruction):
   a, _, _ = instruction.metadata()
+  stack_ptr = cpu_container.cpu_register("SP")
 
   return {
-    "push": a
+    "SP": stack_ptr - 1,
+    stack_ptr + 0x100: a
   }
 
 def pla(cpu_container, instruction):
   a, _, dest = instruction.metadata()
+  stack_ptr = cpu_container.cpu_register("SP")
 
   return {
     dest: a,
-    "pop": 1
+    "SP": stack_ptr + 1
   }
 
 
@@ -340,11 +347,15 @@ def jsr(cpu_container, instruction):
   pc = (pc + 3) - 1
   
   pc_lo, pc_hi = break_16bit_addr(pc)
+  stack_ptr = cpu_container.cpu_register("SP")
+  stack_ptr_addr = stack_ptr + 0x100
 
   return {
     # make sure the order here is correct such that the stack looks like:
     # PC_LO, PC_HI
-    "push": [pc_hi, pc_lo], 
+    stack_ptr_addr: pc_hi,
+    stack_ptr_addr - 1: pc_lo,
+    stack_ptr: stack_ptr - 2,
     dest: jump_dest
   }
 
@@ -366,10 +377,16 @@ def brk(cpu_container, instruction):
 
   status = status | 0x30 # 00110000, sets bits 5 and 4 in the copy for stack
   irq_vec = cpu_container.vector("IRQ/BRK")
+  stack_ptr = cpu_container.cpu_register("SP")
+
+  stack_ptr_addr = 0x100 + stack_ptr
 
   return {
-    "push": [pc_hi, pc_lo, status],
-    dest: irq_vec
+    stack_ptr: stack_ptr - 3,
+    dest: irq_vec,
+    stack_ptr_addr: pc_hi,
+    stack_ptr_addr - 1: pc_lo,
+    stack_ptr_addr - 2: status
   }
 
 def rti(cpu_container, instruction):
@@ -383,7 +400,7 @@ def rti(cpu_container, instruction):
   stack_ptr = stack_ptr + 0x100 + 1
   
   status = cpu_container.read_direct(stack_ptr)
-  status = status & 0xcf # 11001111, ignore B flag
+  status = status & 0xcf  # 11001111, ignore B flag
 
   stack_ptr = stack_ptr + 1
   pc = cpu_container.read_absolute_address(stack_ptr)
@@ -391,14 +408,16 @@ def rti(cpu_container, instruction):
   return {
     "PC": pc,
     "P": status,
-    "pop": 3
+    stack_ptr: stack_ptr + 3
   }
 
 def rts(cpu_container, instruction):
   l, r, dest = instruction.metadata()
+  stack_ptr = cpu_container.cpu_register("SP")
+
   return {
     dest: l + 1,
-    "pop": 2
+    "SP": stack_ptr + 2
   }
 
 ###################################

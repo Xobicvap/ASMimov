@@ -1,6 +1,6 @@
 import unittest
 from tests.architecture.arch_6502.operations import test_operations
-from architecture.arch_6502.cpu import operations
+from architecture.arch_6502.cpu import operations, cpu_container
 
 class OperationsProgramFlowTest(test_operations.OperationsTest):
 
@@ -175,19 +175,27 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
   def test_bne_branches_negative_page_cross(self):
     self.negative_branching_test_page_cross(operations.bne, 0)
 
-  # i don't think there's a lot of ways these could go wrong... ?
+  # "i don't think there's a lot of ways these could go wrong... ?"
+  # HAHAHA famous last words after i converted these to use real
+  # cpu container classes and got rid of the stupid push/pop nonsense
   def test_jsr(self):
     metadata = (0x9000, 0x8000, "PC")
     inst = self.Instruction(metadata)
 
-    result = operations.jsr(None, inst)
+    system = cpu_container.CPUContainer(None, None, None, 0x8000, None, 0xd3)
+
+    result = operations.jsr(system, inst)
     dpc = result["PC"]
-    dpush = result["push"]
+    stack_ptr = result["SP"]
+    stack_ptr_addr = stack_ptr + 0x100
+    pc_hi_addr = stack_ptr_addr + 2
+    pc_lo_addr = stack_ptr_addr + 1
 
     self.assertEqual(dpc, 0x9000)
-    self.assertEqual(len(dpush), 2)
-    self.assertEqual(dpush[0], 0x80)
-    self.assertEqual(dpush[1], 0x02)
+    self.assertEqual(stack_ptr, 0xd1)
+    self.assertEqual(result[pc_lo_addr], 0x02)
+    self.assertEqual(result[pc_hi_addr], 0x80)
+
 
   def test_jmp(self):
     metadata = (0x1234, None, "PC")
@@ -202,39 +210,61 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
     metadata = (0b01001001, 0x7800, "PC")
     inst = self.Instruction(metadata)
 
-    system = self.TestSystem(None, {0xfffe: 0x80, 0xffff: 0x98}, {"IRQ/BRK": 0xfffe})
+    system = cpu_container.CPUContainer(None, None, None, 0x7802, 0b01001001, 0xf0, {0xfffe: 0x80, 0xffff: 0x98})
 
     result = operations.brk(system, inst)
+
     dpc = result["PC"]
-    push_bytes = result["push"]
+    sp = result["SP"]
+
+    stack_ptr_addr = sp + 0x100
+
+    status_addr = stack_ptr_addr + 1
+    pc_addr_lo = stack_ptr_addr + 2
+    pc_addr_hi = stack_ptr_addr + 3
 
     self.assertEqual(dpc, 0x9880)
-    self.assertEqual(len(push_bytes), 3)
-    self.assertEqual(push_bytes[0], 0x78)
-    self.assertEqual(push_bytes[1], 0x02)
-    self.assertEqual(push_bytes[2], 0b01111001)
+    self.assertTrue(pc_addr_hi in result)
+    self.assertEqual(result[pc_addr_hi], 0x78)
+    self.assertEqual(result[pc_addr_lo], 0x02)
+    self.assertEqual(result[status_addr], 0b01111001)
+    self.assertEqual(sp, 0xed, str(sp) + " " + str(result))
 
   def test_rti(self):
     metadata = (0x0fc, None, None)
     inst = self.Instruction(metadata)
 
-    system = self.TestSystem(None, {0x01fd: 0b10110101, 0x01fe: 0x00, 0x01ff: 0xa0})
+    system = cpu_container.CPUContainer(None, None, None, None, None, 0xfc,
+                                        {0x01fd: 0b10110101, 0x01fe: 0x00, 0x01ff: 0xa0})
 
+    self.assertEqual(0, system.cpu_register("P"))
     result = operations.rti(system, inst)
     dpc = result["PC"]
     status = result["P"]
-    # i think this is 3 bytes? but the docs say Processor Status WORD... why WORD?
-    self.assertEqual(result["pop"], 3)
+    sp = result["SP"]
+
     self.assertEqual(dpc, 0xa000)
     self.assertEqual(status, 0b10000101)
+    self.assertEqual(result[0x1fd], 0)
+
+    self.assertEqual(result[0x1fe], 0)
+    self.assertEqual(result[0x1ff], 0)
+    self.assertEqual(sp, 0xff)
 
   def test_rts(self):
     metadata = (0x23ff, None, "PC")
     inst = self.Instruction(metadata)
+    system = cpu_container.CPUContainer(None, None, None, None, None, 0x7f)
 
-    result = operations.rts(None, inst)
+    result = operations.rts(system, inst)
     dpc = result["PC"]
-    self.assertEqual(result["pop"], 2)
+    dsp = result["SP"]
+    lo_byte = result[0x17f]
+    hi_byte = result[0x180]
+
     self.assertEqual(dpc, 0x2400)
+    self.assertEqual(dsp, 0x81)
+    self.assertEqual(lo_byte, 0)
+    self.assertEqual(hi_byte, 0)
 
 

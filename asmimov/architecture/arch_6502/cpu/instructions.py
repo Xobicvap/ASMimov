@@ -11,8 +11,7 @@ from operations import *
 #   memory_operand,
 #   PC displacement,
 #   cycles
-# )  
-
+# )
 
 instruction_tuples = {
   # how do we set this?

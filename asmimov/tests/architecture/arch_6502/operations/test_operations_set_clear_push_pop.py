@@ -1,6 +1,6 @@
 import unittest
 from tests.architecture.arch_6502.operations import test_operations
-from architecture.arch_6502.cpu import operations
+from architecture.arch_6502.cpu import cpu_container, operations
 
 class OperationsSetClearPushPopTest(test_operations.OperationsTest):
   
@@ -28,39 +28,59 @@ class OperationsSetClearPushPopTest(test_operations.OperationsTest):
   def test_php(self):
     metadata = (0b11001100, None, None)
     inst = self.Instruction(metadata)
+    system = cpu_container.CPUContainer(None, None, None, None, 0b11001100, 0xfe)
 
-    result = operations.php(None, inst)
-    push_byte = result["push"]
-    self.assertEqual(push_byte, 0b11111100)
+    result = operations.php(system, inst)
+    sp_reg = result["SP"]
+    self.assertEqual(sp_reg, 0xfd)
+    print(result)
+    stack_ptr_value = result[0x100 + sp_reg + 1]
+    self.assertEqual(stack_ptr_value, 0b11111100)
 
   def test_plp(self):
     metadata = (0b11110011, None, "P")
     inst = self.Instruction(metadata)
+    system = cpu_container.CPUContainer(None, None, None, None, None, 0xcf)
+    self.assertEqual(system.cpu_register("P"), 0)
 
-    result = operations.plp(None, inst)
+    result = operations.plp(system, inst)
     status = result["P"]
     self.assertEqual(status, 0b11000011)
-    pop_ct = result["pop"]
-    self.assertEqual(pop_ct, 1)
+    sp_reg = result["SP"]
+    self.assertEqual(sp_reg, 0xd0)
+    stack_ptr_value = result[0x100 + sp_reg - 1]
+    self.assertEqual(stack_ptr_value, 0)
 
   def test_pha(self):
     metadata = (0x99, None, None)
     inst = self.Instruction(metadata)
+    # getting close to a... (wait for it...)
+    # STACK OVERFLOW
+    # ...
+    # ...
+    # ... i'm here all week, folks!
+    # also setting the actual A register in the cpu container is moot,
+    # since the metadata already "got" it... but why not
+    system = cpu_container.CPUContainer(0x99, None, None, None, None, 0x03)
 
-    result = operations.pha(None, inst)
-    push_byte = result["push"]
-    self.assertEqual(push_byte, 0x99)
+    result = operations.pha(system, inst)
+    sp_reg = result["SP"]
+    self.assertEqual(sp_reg, 0x02)
+    stack_ptr_value = result[sp_reg + 0x100 + 1]
+    self.assertEqual(stack_ptr_value, 0x99)
 
   def test_pla(self):
     metadata = (0xfe, None, "A")
     inst = self.Instruction(metadata)
+    system = cpu_container.CPUContainer(0x44, None, None, None, None, 0xb5)
 
-    result = operations.pla(None, inst)
+    result = operations.pla(system, inst)
     a_reg = result["A"]
     self.assertEqual(a_reg, 0xfe)
-    pop_ct = result["pop"]
-    self.assertEqual(pop_ct, 1)
-
+    sp_reg = result["SP"]
+    self.assertEqual(sp_reg, 0xb6)
+    stack_ptr_value = result[0x100 + sp_reg - 1]
+    self.assertEqual(stack_ptr_value, 0)
 
   def do_set_test(self, result, flag):
     self.do_setclear_test(result, flag, 1)

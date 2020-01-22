@@ -1,12 +1,12 @@
 import unittest
 from tests.architecture.arch_6502.operations import test_operations
-from architecture.arch_6502.cpu import operations
+from architecture.arch_6502.cpu import operations, cpu_container
 
 class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_adc_simple(self):
     metadata = (0x01, 0x01, "A")
-    sys = self.TestSystem({"C": 0, "D": 0})
+    sys = cpu_container.CPUContainer()
 
     inst = self.Instruction(metadata)
 
@@ -27,7 +27,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
     it doesn't mean you _can't_!
     """
     metadata = (0x01, 0x01, "A")
-    sys = self.TestSystem({"C": 1, "D": 0})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00000001)
 
     inst = self.Instruction(metadata)
 
@@ -44,7 +44,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_adc_with_decimal_simple(self):
     metadata = (0x05, 0x05, "A")
-    sys = self.TestSystem({"C": 0, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001000)
     inst = self.Instruction(metadata)
 
     result = operations.adc(sys, inst)
@@ -60,7 +60,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_adc_with_decimal_carry_out(self):
     metadata = (0x58, 0x46, "A")
-    sys = self.TestSystem({"C": 0, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001000)
     inst = self.Instruction(metadata)
 
     result = operations.adc(sys, inst)
@@ -82,7 +82,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
     apparently this does NOT happen.
     """
     metadata = (0x81, 0x19, "A")
-    sys = self.TestSystem({"C": 0, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001000)
     inst = self.Instruction(metadata)
 
     result = operations.adc(sys, inst)
@@ -103,7 +103,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
     """
 
     metadata = (0x75, 0x10, "A")
-    sys = self.TestSystem({"C": 0, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001000)
     inst = self.Instruction(metadata)
 
     result = operations.adc(sys, inst)
@@ -117,12 +117,11 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
     self.assertEqual(dn, 1)
     self.assertEqual(dc, 0)
 
-
   def test_sbc_simple(self):
     metadata = (0x02, 0x01, "A")
     # for simple cases like this we'll assume the programmer did the
     # correct thing and _set_ the carry as you should before SBC
-    sys = self.TestSystem({"C": 1, "D": 0})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00000001)
     inst = self.Instruction(metadata)
 
     result = operations.sbc(sys, inst)
@@ -138,7 +137,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_sbc_no_carry_simple(self):
     metadata = (0x03, 0x01, "A")
-    sys = self.TestSystem({"C": 0, "D": 0})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00000000)
     inst = self.Instruction(metadata)
 
     result = operations.sbc(sys, inst)
@@ -154,7 +153,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_sbc_decimal_simple(self):
     metadata = (0x65, 0x23, "A")
-    sys = self.TestSystem({"C": 1, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001001)
     inst = self.Instruction(metadata)
 
     result = operations.sbc(sys, inst)
@@ -170,7 +169,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_sbc_decimal_with_borrow(self):
     metadata = (0x81, 0x68, "A")
-    sys = self.TestSystem({"C": 1, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001001)
     inst = self.Instruction(metadata)
 
     result = operations.sbc(sys, inst)
@@ -186,7 +185,7 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
 
   def test_sbc_decimal_no_carry_out_negative(self):
     metadata = (0x42, 0x62, "A")
-    sys = self.TestSystem({"C": 1, "D": 1})
+    sys = cpu_container.CPUContainer(None, None, None, None, 0b00001001)
     inst = self.Instruction(metadata)
 
     result = operations.sbc(sys, inst)
@@ -199,7 +198,6 @@ class OperationsArithmeticTest(test_operations.OperationsTest):
     self.assertEqual(dz, 0)
     self.assertEqual(dn, 1)
     self.assertEqual(dc, 0)
-
 
   def test_cmp_result_negative(self):
     metadata = (0x23, 0x50, '')

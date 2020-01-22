@@ -204,27 +204,6 @@ class CPUContainerTest(unittest.TestCase):
     addr = cpu.vector("NMI")
     self.assertEqual(addr, 0x8014)
 
-  def test_push_pop(self):
-    cpu = CPUContainer(None, None, None, None, None, 0xff)
-
-    stack_ptr = cpu.read("SP")
-    cpu.push(stack_ptr, [0x80])
-    stack_ptr = cpu.read("SP")
-    self.assertEqual(stack_ptr, 0xfe)
-
-    cpu.pop(stack_ptr, 1)
-    stack_ptr = cpu.read("SP")
-    self.assertEqual(stack_ptr, 0xff)
-
-    cpu.push(stack_ptr, [0x80, 0x40])
-    stack_ptr = cpu.read("SP")
-    self.assertEqual(stack_ptr, 0xfd)
-    addr = cpu.read_absolute_address(0x1fd)
-
-    cpu.pop(stack_ptr, 2)
-    stack_ptr = cpu.read("SP")
-    self.assertEqual(stack_ptr, 0xff)
-
   def test_change(self):
     # this covers just about the entire change set in one test
     cpu = CPUContainer()

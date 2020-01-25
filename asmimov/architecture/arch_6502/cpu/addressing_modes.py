@@ -1,14 +1,14 @@
 def STACK_PTR_DISPLACEMENT_POP():
   return 0x101
 
-def pop_byte(cpu_container, operand, cycles):
+def pop_byte(cpu_container, operand, cycles=None):
   # don't do the stack_pointer displacement here so we can 
   # track it in changes
   stack_ptr = cpu_container.cpu_register(operand)
   stack_ptr = stack_ptr + STACK_PTR_DISPLACEMENT_POP()
   return cpu_container.read_direct(stack_ptr)
 
-def pop_word(cpu_container, operand, cycles):
+def pop_word(cpu_container, operand, cycles=None):
   stack_ptr = cpu_container.cpu_register(operand)
   stack_ptr = stack_ptr + STACK_PTR_DISPLACEMENT_POP()
   addr_lo = cpu_container.read_direct(stack_ptr)
@@ -16,7 +16,7 @@ def pop_word(cpu_container, operand, cycles):
 
   return (addr_lo, addr_hi)
 
-def pop_addr(cpu_container, operand, cycles):
+def pop_addr(cpu_container, operand, cycles=None):
   addr_lo, addr_hi = pop_word(cpu_container, operand, cycles)
   addr = 0
   addr_hi_word = addr_hi << 8
@@ -24,33 +24,38 @@ def pop_addr(cpu_container, operand, cycles):
   return addr
 
 def immediate(cpu_container, operand, cycles):
-  return operand
+  return (operand, cycles)
 
-def branch_offset(cpu_container, operand, cycles):
-  branch_disp = operand if operand < 0x80 else 0x100 - operand
-  # determine cycle time
-  return (branch_disp, cycles)
+
+relative = immediate
+
 
 def indirect(cpu_container, operand, cycles):
+  operand_lo = operand & 0xff
   addr_lo = cpu_container.read_direct(operand)
-  addr_hi = cpu_container.read_direct(operand + 1)
+  if operand_lo == 0xff:
+    addr_hi = cpu_container.read_direct(operand - 0xff)
+  else:
+    addr_hi = cpu_container.read_direct(operand + 1)
 
   addr_hi_word = addr_hi << 8
-  return addr_hi_word + addr_lo
+  return (addr_hi_word + addr_lo, cycles)
 
 def indexed_indirect(cpu_container, operand, cycles):
   indexed = operand + cpu_container.cpu_register('X') & 0xff
-  addr_hi = (indexed + 1) * 0x100
-  addr_lo = indexed
+  addr_hi = (cpu_container.read_direct(indexed + 1)) << 8
+  addr_lo = cpu_container.read_direct(indexed)
   addr = addr_hi + addr_lo
   return (cpu_container.read_direct(addr), cycles)
 
 def indirect_indexed(cpu_container, operand, cycles):
   y = cpu_container.cpu_register('Y')
   addr_lo = cpu_container.read_direct(operand) + y
-  addr_hi = cpu_container.read_direct(operand + 1)
-  if addr_lo > 0x100:
+  addr_hi = cpu_container.read_direct(operand + 1) << 8
+
+  if addr_lo >= 0x100:
     addr_lo = addr_lo & 0xff
+    cycles = cycles + 1
   addr = addr_hi + addr_lo
   return (cpu_container.read_direct(addr), cycles)
 
@@ -65,7 +70,7 @@ def absolute(cpu_container, operand, cycles):
 
 def absolute_indexed(cpu_container, operand, cycles, v):
   lo_byte = operand & 0xff
-  if v + lo_byte > 0x100:
+  if v + lo_byte >= 0x100:
     cycles = cycles + 1
     hi_byte = operand & 0xff00
     # this might be off by 1
@@ -81,7 +86,7 @@ def absolute_y(cpu_container, operand, cycles):
   return absolute_indexed(cpu_container, operand, cycles, cpu_container.cpu_register('Y'))
 
 def zero_page_indexed(cpu_container, operand, cycles, v):
-  if v + operand > 0x100:
+  if v + operand >= 0x100:
     cycles = cycles + 1
     addr = ((v + operand) & 0xff)
   else:

@@ -33,7 +33,6 @@ class OperationsSetClearPushPopTest(test_operations.OperationsTest):
     result = operations.php(system, inst)
     sp_reg = result["SP"]
     self.assertEqual(sp_reg, 0xfd)
-    print(result)
     stack_ptr_value = result[0x100 + sp_reg + 1]
     self.assertEqual(stack_ptr_value, 0b11111100)
 

@@ -269,7 +269,7 @@ instruction_tuples = {
   ),
   0x30: (
     bmi,
-    branch_offset,
+    relative,
     "operand",
     "N",
     "PC",
@@ -433,7 +433,7 @@ instruction_tuples = {
   ),
   0x50: (
     bvc,
-    branch_offset,
+    relative,
     "operand",
     "V",
     "PC",
@@ -587,7 +587,7 @@ instruction_tuples = {
   ),
   0x70: (
     bvs,
-    branch_offset,
+    relative,
     "operand",
     "V",
     "PC",
@@ -740,7 +740,7 @@ instruction_tuples = {
   ),
   0x90: (
     bcc,
-    branch_offset,
+    relative,
     "operand",
     "C",
     "PC",
@@ -929,7 +929,7 @@ instruction_tuples = {
   ),
   0xb0: (
     bcs,
-    branch_offset,
+    relative,
     "operand",
     "C",
     "PC",
@@ -1127,7 +1127,7 @@ instruction_tuples = {
   ),
   0xd0: (
     bne,
-    branch_offset,
+    relative,
     "operand",
     "Z",
     "PC",
@@ -1298,7 +1298,7 @@ instruction_tuples = {
   ),
   0xf0: (
     beq,
-    branch_offset,
+    relative,
     "operand",
     "Z",
     "PC",

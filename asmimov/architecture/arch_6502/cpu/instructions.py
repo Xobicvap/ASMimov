@@ -1,5 +1,5 @@
-from addressing_modes import *
-from operations import *
+from .addressing_modes import *
+from .operations import *
 
 # tuple structure
 # (
@@ -14,7 +14,6 @@ from operations import *
 # )
 
 instruction_tuples = {
-  # how do we set this?
   0x00: (
     brk,
     None,
@@ -56,7 +55,7 @@ instruction_tuples = {
     None,
     "P",
     None,
-    "push",
+    None,
     1,
     3
   ),
@@ -98,7 +97,7 @@ instruction_tuples = {
   ),
   0x10: (
     bpl,
-    branch_offset,
+    relative,
     "operand",
     "N",
     "PC",

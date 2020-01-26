@@ -15,9 +15,12 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
     self.assertEqual(cycles, expected_cycles)
 
   def non_branching_test(self, operation, branch_cond):
-    # the dest (3rd) param here is the PC... shades of apple ii assembly :p
+    # branch_offset, will branch?, current pc
     metadata = (0x04, branch_cond, 0x0800)
+    # @TODO: update base test function and branch tests to not require the internal
+    # @TODO: metadata append
     pc_metadata = (2, 2)
+
     expected_pc = 0x0802
     expected_cycles = 2
 

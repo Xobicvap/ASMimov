@@ -8,10 +8,14 @@ class OperationsTest(unittest.TestCase):
   class Instruction:
     def __init__(self, tpl, pc_tpl=None):
       self.tpl = tpl
-      self.pc_tpl = pc_tpl
+      if pc_tpl is not None:
+        temp = list(self.tpl)
+        temp_pc_tpl = list(pc_tpl)
+        temp.extend(temp_pc_tpl)
+        self.tpl = tuple(temp)
 
     def metadata(self):
       return self.tpl
 
-    def pc_metadata(self):
-      return self.pc_tpl
+    def pc_metadata(self, cpu_container):
+      return self.tpl

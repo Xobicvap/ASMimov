@@ -87,6 +87,9 @@ class CPUContainer:
   def cpu_registers(self):
     return self.register_map.keys()
 
+  def status_flags(self):
+    return ["N", "V", "D", "I", "Z", "C"]
+
   def cpu_register(self, reg, value=None):
     if value is None:
       return self.register_map[reg]
@@ -95,7 +98,7 @@ class CPUContainer:
   def read(self, operand, addr_fxn=None, cycles=None):
     if operand in self.cpu_registers():
       return self.cpu_register(operand)
-    return addr_fxn(self.memory_map, operand, cycles)
+    return addr_fxn(self, operand, cycles)
 
   def read_direct(self, addr):
     return self.memory_map[addr]

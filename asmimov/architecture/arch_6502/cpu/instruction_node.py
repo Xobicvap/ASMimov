@@ -23,6 +23,9 @@ class InstructionNode:
       else:
         operand_value = system.read(operand)
         setattr(self, operand_name, operand_value)
+    elif operand in system.status_flags():
+      operand_value = system.status(operand)
+      setattr(self, operand_name, operand_value)
     elif operand is not None:
       operand_value, cycle_count = system.read(operand, self.addressing_fxn, self.cycles)
       setattr(self, operand_name, operand_value)
@@ -37,8 +40,17 @@ class InstructionNode:
       self.dest_name
     )
 
-  def pc_metadata(self):
+  # def pc_metadata(self):
+  #   return (
+  #     self.pc_disp,
+  #     self.cycles
+  #   )
+
+  def pc_metadata(self, system):
     return (
+      self.operand1,
+      self.operand2,
+      system.cpu_register("PC"),
       self.pc_disp,
       self.cycles
     )

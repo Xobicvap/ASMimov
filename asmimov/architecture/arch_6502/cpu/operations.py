@@ -570,8 +570,7 @@ def get_decimal_parts(l, r):
   return (l_lo, l_hi, r_lo, r_hi)
 
 def branch(will_branch, cpu_container, instruction):
-  l, r, pc = instruction.metadata()
-  pc_disp, cycles = instruction.pc_metadata()
+  l, r, pc, pc_disp, cycles = instruction.pc_metadata(cpu_container)
   branch_offset = l
   after_instruction = pc + pc_disp
   if will_branch:

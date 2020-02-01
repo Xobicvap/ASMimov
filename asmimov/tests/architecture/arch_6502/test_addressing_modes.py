@@ -64,7 +64,7 @@ class AddressingModesTest(unittest.TestCase):
                           {0xf0: 0x80, 0xf1: 0x40, 0xf2: 0xdf,
                            0x4078: 0x83, 0x4178: 0x21})
     result, cycles = addressing_modes.indirect_indexed(system, 0xf0, 5)
-    self.assertEqual(result, 0x83)
+    self.assertEqual(result, 0x21)
     self.assertEqual(cycles, 6)
 
   def test_zero_page(self):

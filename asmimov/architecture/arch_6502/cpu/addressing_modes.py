@@ -56,7 +56,9 @@ def indirect_indexed(cpu_container, operand, cycles):
   if addr_lo >= 0x100:
     addr_lo = addr_lo & 0xff
     cycles = cycles + 1
+    addr_hi = addr_hi + 0x100
   addr = addr_hi + addr_lo
+
   return (cpu_container.read_direct(addr), cycles)
 
 def direct(cpu_container, operand, cycles):

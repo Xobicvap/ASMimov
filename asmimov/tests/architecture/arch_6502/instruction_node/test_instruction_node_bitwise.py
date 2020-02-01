@@ -4,6 +4,7 @@ from architecture.arch_6502.cpu.cpu_container import CPUContainer
 import unittest
 
 class BitwiseInstructionNodeTest(unittest.TestCase):
+
   def test_ora_indexed_indirect(self):
     inst_tuple = im[0x01]
     op2 = 0xd0
@@ -19,7 +20,7 @@ class BitwiseInstructionNodeTest(unittest.TestCase):
     inst.set_operand1(system, op1)
     self.assertEqual(inst.operand1, 0x54)
     inst.set_operand2(system, op2)
-    self.assertEqual(inst.operand2, 11)
+    self.assertEqual(inst.operand2, 0x0b)
 
     changes = inst.evaluate(system)
     self.assertEqual(changes["A"], 0x5f)
@@ -98,3 +99,24 @@ class BitwiseInstructionNodeTest(unittest.TestCase):
     self.assertEqual(changes["PC"], 0x7003)
     self.assertEqual(changes["cycles"], 4)
 
+  def test_ora_indirect_indexed(self):
+    inst_tuple = im[0x11]
+    op2 = 0x0d
+
+    change_fxn, addr_fxn, op1, _, dest, pc_disp, cycles = inst_tuple
+    inst = InstructionNode(change_fxn, addr_fxn, dest, pc_disp, cycles)
+    system = CPUContainer(0x22, None, 0x2b, 0x7000, 0b10001000, 0xff,
+                          {0x0d: 0xf1, 0x0e: 0x4f, 0x501c: 0x48})
+
+    inst.set_operand1(system, op1)
+    self.assertEqual(inst.operand1, 0x22)
+    inst.set_operand2(system, op2)
+    self.assertEqual(inst.operand2, 0x48)
+
+    changes = inst.evaluate(system)
+    self.assertEqual(changes["A"], 0x6a)
+    status = changes["P"]
+    self.assertEqual(status["N"], 0)
+    self.assertEqual(status["Z"], 0)
+    self.assertEqual(changes["PC"], 0x7002)
+    self.assertEqual(changes["cycles"], 6)

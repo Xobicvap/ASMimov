@@ -58,7 +58,7 @@ class OperationsSetClearPushPopTest(test_operations.OperationsTest):
     # ...
     # ...
     # ... i'm here all week, folks!
-    # also setting the actual A register in the cpu container is moot,
+    # also setting the actual A register in the oldcpu container is moot,
     # since the metadata already "got" it... but why not
     system = cpu_container.CPUContainer(0x99, None, None, None, None, 0x03)
 

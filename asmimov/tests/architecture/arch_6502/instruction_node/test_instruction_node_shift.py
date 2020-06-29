@@ -73,3 +73,28 @@ class ShiftInstructionNodeTest(unittest.TestCase):
     self.assertEqual(status["C"], 0)
     self.assertEqual(changes["PC"], 0x7003)
     self.assertEqual(changes["cycles"], 4)
+
+  def test_asl_zero_page_x(self):
+    inst_tuple = im[0x16]
+
+    op1 = 0x1e
+    # also remember that the tuple converting function needs to turn "operand"
+    # to a value for dest, as well
+    change_fxn, addr_fxn, _, op2, _, pc_disp, cycles = inst_tuple
+    inst = InstructionNode(change_fxn, addr_fxn, op1, pc_disp, cycles)
+    system = CPUContainer(None, 0x57, None, 0x7000, 0b10001000, 0xff,
+                          {0x75: 0x59, 0x1e: 0x02})
+
+    inst.set_operand1(system, op1)
+    self.assertEqual(inst.operand1, 0x75)
+    inst.set_operand2(system, op2)
+    self.assertEqual(inst.operand2, None)
+
+    changes = inst.evaluate(system)
+    self.assertEqual(changes[0x75], 0xb2)
+    status = changes["P"]
+    self.assertEqual(status["N"], 1)
+    self.assertEqual(status["Z"], 0)
+    self.assertEqual(status["C"], 0)
+    self.assertEqual(changes["PC"], 0x7002)
+    self.assertEqual(changes["cycles"], 6)

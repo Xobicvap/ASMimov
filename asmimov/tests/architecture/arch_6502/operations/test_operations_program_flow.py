@@ -180,7 +180,7 @@ class OperationsProgramFlowTest(test_operations.OperationsTest):
 
   # "i don't think there's a lot of ways these could go wrong... ?"
   # HAHAHA famous last words after i converted these to use real
-  # cpu container classes and got rid of the stupid push/pop nonsense
+  # oldcpu container classes and got rid of the stupid push/pop nonsense
   def test_jsr(self):
     metadata = (0x9000, 0x8000, "PC")
     inst = self.Instruction(metadata)

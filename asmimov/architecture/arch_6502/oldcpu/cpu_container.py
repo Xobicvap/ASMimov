@@ -122,5 +122,5 @@ class CPUContainer:
       elif dest in ['A', 'X', 'Y', 'SP', 'PC']:
         self.cpu_register(dest, val)
       else:
-        # i/o isn't part of this, this is pure cpu, so no worries
+        # i/o isn't part of this, this is pure oldcpu, so no worries
         self.write(dest, val)

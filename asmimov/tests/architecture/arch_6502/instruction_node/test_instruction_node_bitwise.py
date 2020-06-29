@@ -120,3 +120,27 @@ class BitwiseInstructionNodeTest(unittest.TestCase):
     self.assertEqual(status["Z"], 0)
     self.assertEqual(changes["PC"], 0x7002)
     self.assertEqual(changes["cycles"], 6)
+
+  def test_ora_zero_page_x(self):
+    inst_tuple = im[0x15]
+    op2 = 0xdf
+    # remember when doing the actual CPU that the inst tuples need
+    # a function that converts "operand" in the tuple to whatever the
+    # incoming operand is
+    change_fxn, addr_fxn, op1, _, dest, pc_disp, cycles = inst_tuple
+    inst = InstructionNode(change_fxn, addr_fxn, dest, pc_disp, cycles)
+    system = CPUContainer(0x89, 0x09, None, 0x7000, 0b10001000, 0xff,
+                          {0xe6: 0x22, 0xe8: 0x11})
+
+    inst.set_operand1(system, op1)
+    self.assertEqual(inst.operand1, 0x89)
+    inst.set_operand2(system, op2)
+    self.assertEqual(inst.operand2, 0x11)
+
+    changes = inst.evaluate(system)
+    self.assertEqual(changes["A"], 0x99)
+    status = changes["P"]
+    self.assertEqual(status["N"], 1)
+    self.assertEqual(status["Z"], 0)
+    self.assertEqual(changes["PC"], 0x7002)
+    self.assertEqual(changes["cycles"], 4)

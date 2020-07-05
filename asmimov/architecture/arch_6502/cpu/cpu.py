@@ -1,13 +1,13 @@
 from .address_bus import AddressBus
-from hexnum import ByteValue, WordValue
+from architecture.math.hexnum import ByteValue, WordValue
 
 class CPU:
 
   def __init__(self, registers, memory):
     self.registers = registers
     self.address_bus = AddressBus(memory)
-    self.data_register = hexnum.ByteValue(0)
-    self.instruction_register = hexnum.ByteValue(0)
+    self.data_register = ByteValue(0)
+    self.instruction_register = ByteValue(0)
     self.vectors = {
       "NMI": 0xFFFA,
       "IRQ": 0xFFFC,

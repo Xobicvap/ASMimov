@@ -1,16 +1,16 @@
-from math import hexnum
+from architecture.math.hexnum import ByteValue, WordValue
 from .status import StatusRegister
 from .stack_pointer import StackPointer
 
 class Registers:
 
   def __init__(self):
-    self.a = hexnum.ByteValue(0)
-    self.x = hexnum.ByteValue(0)
-    self.y = hexnum.ByteValue(0)
+    self.a = ByteValue(0)
+    self.x = ByteValue(0)
+    self.y = ByteValue(0)
     self.sp = StackPointer(0)
     self.p = StatusRegister(0)
-    self.pc = hexnum.WordValue(0)
+    self.pc = WordValue(0)
     self.register_names = ['A', 'X', 'Y', 'SP', 'P', 'PC']
 
   def write(self, name, value):

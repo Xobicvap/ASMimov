@@ -1,9 +1,28 @@
 class ByteValue:
   def __init__(self, v):
-    self.max_value = 255
+    self.max_value = 256
+    if v >= self.max_value:
+      raise Exception("ByteValue must be < 256")
+
     self.value = v
     self.carry_happened = False
     self.bcd = False
+
+  # i don't think we need a getter here
+
+  def handle_overflow(self, override_carry=False):
+    if self.value >= self.max_value:
+      self.carry_happened = True if not override_carry else self.carry_happened
+      self.value = self.value - self.max_value
+    else:
+      self.carry_happened = False if not override_carry else self.carry_happened
+
+  def handle_underflow(self, override_carry=False):
+    if self.value < 0:
+      self.carry_happened = True if not override_carry else self.carry_happened
+      self.value = self.value + self.max_value
+    else:
+      self.carry_happened = False if not override_carry else self.carry_happened
 
   def bit_set(self, bit_pos):
     return self.value & 2**bit_pos != 0
@@ -24,50 +43,51 @@ class ByteValue:
   # this will allow type hinting (at much less performance degradation)
   # and allow us to use from __future__ import annotations
 
-  def __add__(self, other):
-    # will this be understood in WordValue?
-    if other is ByteValue:
-      temp = self.value + other.value
-    else:
-      temp = self.value + other
+  # for add/sub we need to handle BCD
 
-    if temp > self.max_value:
-      self.carry_happened = True
-      # handle overflow; temp = 256 - x
-      # i.e 0x80 + 0x81 = 0x101 -> 0x101 - 0x100 = 0x01
-      temp = temp - self.max_value
+  def __add__(self, other):
+    temp = ByteValue(self.value)
+    if isinstance(other, ByteValue):
+      temp.value = temp.value + other.value
     else:
-      self.carry_happened = False
-    self.value = ByteValue(temp)
+      temp.value = temp.value + other
+
+    temp.handle_overflow()
+    return temp
 
   def __sub__(self, other):
-    if other is ByteValue:
-      temp = self.value - other.value
+    temp = ByteValue(self.value)
+    if isinstance(other, ByteValue):
+      temp.value = self.value - other.value
     else:
-      temp = self.value - other
-    if temp < 0:
-      # what about carry?
-      # i.e. 0x90 - 0x92 = -0x02 + 0x100 = 0xfe
-      temp = temp + self.max_value
-    self.value = ByteValue(temp)
+      temp.value = self.value - other
+
+    temp.handle_underflow()
+    return temp
 
   def __and__(self, other):
-    if other is ByteValue:
-      self.value = self.value & other.value
+    temp = ByteValue(self.value)
+    if isinstance(other, ByteValue):
+      temp.value = temp.value & other.value
     else:
-      self.value = self.value & other
+      temp.value = temp.value & other
+    return temp
 
   def __or__(self, other):
-    if other is ByteValue:
-      self.value = self.value | other.value
+    temp = ByteValue(self.value)
+    if isinstance(other, ByteValue):
+      temp.value = temp.value | other.value
     else:
-      self.value = self.value | other
+      temp.value = temp.value | other
+    return temp
 
   def __xor__(self, other):
-    if other is ByteValue:
-      self.value = self.value ^ other.value
+    temp = ByteValue(self.value)
+    if isinstance(other, ByteValue):
+      temp.value = temp.value ^ other.value
     else:
-      self.value = self.value ^ other
+      temp.value = temp.value ^ other
+    return temp
 
   # lshift and rshift expect an integer as 'other'
 
@@ -79,6 +99,8 @@ class ByteValue:
     else:
       self.carry_happened = False
     self.value = self.value << other
+    self.handle_overflow(True)
+    return self
 
   def __rshift__(self, other):
     if other != 1:
@@ -88,28 +110,32 @@ class ByteValue:
     else:
       self.carry_happened = False
     self.value = self.value >> other
+    self.handle_underflow(True)
+    return self
+
+  def __str__(self):
+    if self.value < 0x10:
+      return "0" + hex(self.value)[2:].upper()
+    return hex(self.value)[2:].upper()
 
 class WordValue:
 
   def __init__(self, v, hi_byte=None):
     self.max_value = 65536
-    if v < 256 and hi_byte is not None:
-      if hi_byte < 256:
-        self.lo_byte = super.__init__(v)
-        self.hi_byte = super.__init__(hi_byte)
-        self.value = (hi_byte << 8) + v
-      else:
-        raise Exception("Incorrect init for WordValue; hi_byte must be < 256")
+    if hi_byte is not None:
+      self.lo_byte = ByteValue(v)
+      self.hi_byte = ByteValue(hi_byte)
+      self.value = (hi_byte << 8) + v
     else:
       if v >= self.max_value:
         raise Exception("WordValue must be < 65536 / 0xffff")
       self.value = v
       if v < 256:
-        self.hi_byte = 0
-        self.lo_byte = v
+        self.hi_byte = ByteValue(0)
+        self.lo_byte = ByteValue(v)
       else:
-        self.lo_byte = v & 0xff
-        self.hi_byte = v & 0xff00
+        self.lo_byte = ByteValue(v & 0xff)
+        self.hi_byte = ByteValue(v >> 8)
 
   def get(self):
     return self.value
@@ -121,17 +147,29 @@ class WordValue:
     return self.hi_byte
 
   def set_lo_byte(self, lo_byte):
-    self.lo_byte = lo_byte
-    if self.hi_byte < 256:
-      temp_hi_byte = self.hi_byte << 8
-    self.value = temp_hi_byte + self.lo_byte
+    self.lo_byte = ByteValue(lo_byte)
+    temp_hi_byte = self.hi_byte.value
+    self.value = (temp_hi_byte << 8) + self.lo_byte.value
 
   def set_hi_byte(self, hi_byte):
+    self.hi_byte = ByteValue(hi_byte)
     temp_hi_byte = hi_byte << 8
-    self.value = temp_hi_byte + self.lo_byte
+    self.value = temp_hi_byte + self.lo_byte.value
 
   def __add__(self, other):
-    self.value = self.value + other
+    if isinstance(other, ByteValue):
+      temp = self.value + other.value
+    else:
+      temp = self.value + other
+    if temp > self.max_value:
+      temp = temp - self.max_value
+    return WordValue(temp)
 
   def __sub__(self, other):
-    self.value = self.value - other
+    if isinstance(other, ByteValue):
+      temp = self.value - other.value
+    else:
+      temp = self.value - other
+    if temp < 0:
+      temp = temp + self.max_value
+    return WordValue(temp)

@@ -101,7 +101,7 @@ def fetch_value_and_increment_pc(cpu):
   return increment_pc(cpu)
 
 def copy_lo_addr_to_pcl_and_fetch_hi_addr_to_pch(cpu):
-  cpu.address_bus.set(cpu.pc())
+  cpu.address_bus.set(cpu.pc().get())
   pch = cpu.address_bus.read()
   cpu.address_bus.read().set_lo_byte(cpu.DR())
   cpu.address_bus.read().set_hi_byte(pch)
@@ -110,13 +110,13 @@ def copy_lo_addr_to_pcl_and_fetch_hi_addr_to_pch(cpu):
 
 # absolute instructions
 def fetch_address_lo_byte_increment_pc(cpu):
-  cpu.address_bus.set(cpu.pc())
+  cpu.address_bus.set(cpu.pc().get())
   pcl = cpu.address_bus.read()
   cpu.address_bus.read().set_lo_byte(pcl)
   return increment_pc(cpu)
 
 def fetch_address_hi_byte_increment_pc(cpu):
-  cpu.address_bus.set(cpu.pc())
+  cpu.address_bus.set(cpu.pc().get())
   pch = cpu.address_bus.read()
   cpu.address_bus.read().set_hi_byte(pch)
   return increment_pc(cpu)

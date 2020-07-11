@@ -12,14 +12,27 @@ class Registers:
     self.p = StatusRegister(0)
     self.pc = WordValue(0)
     self.register_names = ['A', 'X', 'Y', 'SP', 'P', 'PC']
+    self.normal_registers = ['A', 'X', 'Y']
 
   def write(self, name, value):
-    if name not in self.register_names:
-      raise Exception(name + " not in register names for set!")
-    register = getattr(self, name.upper())
-    register.set_value(value)
+    upper_name = name.upper()
+    if upper_name in self.normal_registers:
+      register = value if isinstance(value, ByteValue) \
+        else ByteValue(value)
+    elif upper_name == 'SP':
+      register = value if isinstance(value, StackPointer) \
+        else StackPointer(value)
+    elif upper_name == 'P':
+      register = value if isinstance(value, StatusRegister) \
+          else StatusRegister(value)
+    elif upper_name == 'PC':
+      register = value if isinstance(value, WordValue) \
+          else WordValue(value)
+    else:
+      raise Exception("Unknown register being written to: " + name)
+    setattr(self, name.lower(), register)
 
   def read(self, name):
     if name not in self.register_names:
       raise Exception(name + " not in register names when getting!")
-    return getattr(self, name)
+    return getattr(self, name.lower())

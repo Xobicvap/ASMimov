@@ -190,25 +190,30 @@ class ByteValueTest(unittest.TestCase):
     v1.set_hi_byte(0xff)
     self.assertEqual(0xffff, v1.value)
 
-  def test_add_byte_value(self):
-    v1 = WordValue(0xe000)
-    v2 = v1 + ByteValue(0xff)
-    self.assertEqual(0xe0ff, v2.value)
+  def test_add_byte_value_no_negatives(self):
+    v1 = WordValue(0x3c05)
+    v2 = v1 + ByteValue(0x33)
+    self.assertEqual(0x3c38, v2.value)
 
-  def test_add_int(self):
-    v1 = WordValue(0xd080)
-    v2 = v1 + 0x70
-    self.assertEqual(0xd0f0, v2.value)
+  def test_add_byte_value_added_not_negative(self):
+    v1 = WordValue(0x6bf2)
+    v2 = v1 + ByteValue(0x0a)
+    self.assertEqual(0x6bfc, v2.value)
 
-  def test_add_byte_value_overflow(self):
-    v1 = WordValue(0x2ffe)
-    v2 = v1 + ByteValue(0x03)
-    self.assertEqual(0x3001, v2.value)
+  def test_add_byte_value_page_boundary_up(self):
+    v1 = WordValue(0xc08f)
+    v2 = v1 + ByteValue(0x7f)
+    self.assertEqual(0xc10e, v2.value)
 
-  def test_add_int_overflow(self):
-    v1 = WordValue(0x400f)
-    v2 = v1 + 0xf2
-    self.assertEqual(0x4101, v2.value)
+  def test_add_byte_value_added_is_negative(self):
+    v1 = WordValue(0x2a03)
+    v2 = v1 + ByteValue(0xfe)
+    self.assertEqual(0x2a01, v2.value)
+
+  def test_add_byte_value_page_boundary_down(self):
+    v1 = WordValue(0x0705)
+    v2 = v1 + ByteValue(0x81)
+    self.assertEqual(0x0686, v2.value)
 
   def test_sub_byte_value(self):
     v1 = WordValue(0xe000)

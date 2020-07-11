@@ -44,3 +44,17 @@ class StatusRegisterTest(unittest.TestCase):
     self.assertEqual(0, v.get_flag("Z"))
     v.set_flags(1, "C")
     self.assertEqual(1, v.get_flag("C"))
+
+  def test_modify_get_flag(self):
+    v = StatusRegister(0x01)
+    x = v.modify("C")
+    self.assertEqual(1, x)
+
+  def test_modify_set_flag(self):
+    v = StatusRegister(0x41)
+    v.modify("C", 0)
+    v.modify("N", 1)
+    self.assertEqual(1, v.get_flag("N"))
+    self.assertEqual(0, v.get_flag("C"))
+    # ensure other already-set flags are not affected
+    self.assertEqual(1, v.get_flag("V"))

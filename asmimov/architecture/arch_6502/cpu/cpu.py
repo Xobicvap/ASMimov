@@ -7,12 +7,14 @@ class CPU:
     self.registers = registers
     self.address_bus = AddressBus(memory)
     self.data_register = ByteValue(0)
+    self.d2 = ByteValue(0)
     self.instruction_register = ByteValue(0)
     self.vectors = {
       "NMI": 0xFFFA,
       "IRQ": 0xFFFC,
       "RESET": 0xFFFE
     }
+    self.fix_effective = False
 
   def vector(self, name, next_byte=False):
     if name not in self.vectors:
@@ -69,11 +71,25 @@ class CPU:
   def IR(self, value=None):
     if value is None:
       return self.instruction_register
-    self.instruction_register.set_value(value)
+    self.instruction_register.value = value
 
   def DR(self, value=None):
     if value is None:
       return self.data_register
-    self.data_register.set_value(value)
+    self.data_register.value = value
+
+  def D2(self, value=None):
+    if value is None:
+      return self.d2
+    self.d2.value = value
+
+  def set_fix_effective_address(self):
+    self.fix_effective = True
+
+  def should_fix_effective_address(self):
+    ret_val = self.fix_effective
+    if ret_val:
+      self.fix_effective = False
+    return ret_val
 
 

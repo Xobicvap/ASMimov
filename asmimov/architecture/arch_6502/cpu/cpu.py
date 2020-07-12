@@ -20,7 +20,10 @@ class CPU:
     if name not in self.vectors:
       raise Exception("Unknown vector " + name + " requested")
     vec_addr = self.vectors[name]
-    return vec_addr if not next_byte else vec_addr + 1
+    return WordValue(vec_addr) if not next_byte else WordValue(vec_addr + 1)
+
+  def irq_vector(self, next_byte=False):
+    return self.vector("IRQ", next_byte)
 
   def register(self, name, value=None):
     if value is None:

@@ -144,7 +144,7 @@ class ByteValue:
 class DecimalByteValue(ByteValue):
 
   def zero(self):
-    return 1 if self.value == 0 and not self.carry_happened
+    return 1 if self.value == 0 and not self.carry_happened else 0
 
   def __add__(self, other):
 

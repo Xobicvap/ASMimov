@@ -279,13 +279,13 @@ per_cycle_fxns = {
     pull_pch
   ],
 
-  # ora ($zp, x)
-  0x01: [
+  # eor ($zp, x)
+  0x41: [
     fetch_pointer_address_increment_pc,
     read_pointer_add_x,
     indexed_indirect_address_lo,
     indexed_indirect_address_hi,
-    IndexedIndirectRead(ora)
+    IndexedIndirectRead(eor)
   ],
 
   # eor $zp
@@ -450,6 +450,14 @@ per_cycle_fxns = {
   # lsr a
   0x6a: [
     Implied(ror)
+  ],
+
+  # jmp ($nnnn)
+  0x6c: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    read_from_effective_address,
+    fetch_pch_copy_to_pc
   ],
 
   # adc $nnnn
@@ -652,11 +660,225 @@ per_cycle_fxns = {
     WriteRegisterOperation(sta)
   ],
 
+  # ldy #$xx
+  0xa0: [
+    Immediate(ldy)
+  ],
+
+  # lda ($zp, x)
+  0xa1: [
+    fetch_pointer_address_increment_pc,
+    read_pointer_add_x,
+    indexed_indirect_address_lo,
+    indexed_indirect_address_hi,
+    IndexedIndirectRead(lda)
+  ],
+
+  # ldx #$xx
+  0xa2: [
+    Immediate(ldx)
+  ],
+
+  # ldy $zp
+  0xa4: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(ldy)
+  ],
+
+  # lda $zp
+  0xa5: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(lda)
+  ],
+
+  # ldx $zp
+  0xa6: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(ldx)
+  ],
+
+  # tay
+  0xa8: [
+    Implied(tay)
+  ],
+
+  # lda #$xx
+  0xa9: [
+    Immediate(lda)
+  ],
+
+  # tax
+  0xaa: [
+    Implied(tax)
+  ],
+
+  # ldy $nnnn
+  0xac: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(ldy)
+  ],
+
+  # lda $nnnn
+  0xad: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(lda)
+  ],
+
+  # ldx $nnnn
+  0xae: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(ldx)
+  ],
+
   # bcs r
   0xb0: [
     fetch_value_and_increment_pc,
     Relative(bcs),
     Relative(bcs)
+  ],
+
+  # lda ($zp), y
+  0xb1: [
+    fetch_pointer_address_increment_pc,
+    fetch_indirect_effective_address_lo,
+    fetch_indirect_effective_address_hi_add_y,
+    IndexedIndirectRead(lda),
+    IndexedIndirectRead(lda)
+  ],
+
+  # ldy $zp, x
+  0xb4: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_x,
+    ZeroPageReadX(ldy)
+  ],
+
+  # lda $zp, x
+  0xb5: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_x,
+    ZeroPageReadX(lda)
+  ],
+
+  # ldx $zp, y
+  0xb6: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_y,
+    ZeroPageReadY(ldx)
+  ],
+
+  # clv
+  0xb8: [
+    Implied(clv)
+  ],
+
+  # lda $nnnn, y
+  0xb9: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_y_lo_increment_pc,
+    AbsoluteReadY(lda),
+    AbsoluteReadY(lda)
+  ],
+
+  0xba: [
+    Implied(tsx)
+  ],
+
+  # ldy $nnnn, x
+  0xbc: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_x_lo_increment_pc,
+    AbsoluteReadX(ldy),
+    AbsoluteReadX(ldy)
+  ],
+
+  # lda $nnnn, x
+  0xbd: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_x_lo_increment_pc,
+    AbsoluteReadX(lda),
+    AbsoluteReadX(lda)
+  ],
+
+  # ldx $nnnn, y
+  0xbe: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_y_lo_increment_pc,
+    AbsoluteReadY(lda),
+    AbsoluteReadY(lda)
+  ],
+
+  # cpy #$xx
+  0xc0: [
+    Immediate(cpy)
+  ],
+
+  # lda ($zp, x)
+  0xc1: [
+    fetch_pointer_address_increment_pc,
+    read_pointer_add_x,
+    indexed_indirect_address_lo,
+    indexed_indirect_address_hi,
+    IndexedIndirectRead(cmp)
+  ],
+
+  # cpy $zp
+  0xc4: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(cpy)
+  ],
+
+  # cmp $zp
+  0xc5: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(cmp)
+  ],
+
+  # dec $zp
+  0xc6: [
+    fetch_address_zero_page_increment_pc,
+    read_from_effective_address,
+    ZeroPageReadModifyWrite(dec),
+    write_new_to_effective_address
+  ],
+
+  # iny
+  0xc8: [
+    Implied(iny)
+  ],
+
+  # cmp #$xx
+  0xc9: [
+    Immediate(cmp)
+  ],
+
+  # dex
+  0xca: [
+    Implied(dex)
+  ],
+
+  # cpy $nnnn
+  0xcc: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(cpy)
+  ],
+
+  # cmp $nnnn
+  0xcd: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(cmp)
+  ],
+
+  # cpx $nnnn
+  0xce: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(cpx)
   ],
 
   # bne r
@@ -665,6 +887,69 @@ per_cycle_fxns = {
     Relative(bne),
     Relative(bne)
   ],
+
+  # cmp ($zp), y
+  0xd1: [
+    fetch_pointer_address_increment_pc,
+    fetch_indirect_effective_address_lo,
+    fetch_indirect_effective_address_hi_add_y,
+    IndexedIndirectRead(cmp),
+    IndexedIndirectRead(cmp)
+  ],
+
+  # lda $zp, x
+  0xd5: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_x,
+    ZeroPageReadX(cmp)
+  ],
+
+  # dec $zp, x
+  0xd6: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_x,
+    read_from_effective_address,
+    ZeroPageReadModifyWriteX(dec),
+    write_new_to_effective_address
+  ],
+
+  # cld
+  0xd8: [
+    Implied(cld)
+  ],
+
+  # cmp $nnnn, y
+  0xd9: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_y_lo_increment_pc,
+    AbsoluteReadY(cmp),
+    AbsoluteReadY(cmp)
+  ],
+
+  # cmp $nnnn, x
+  0xdd: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_x_lo_increment_pc,
+    AbsoluteReadX(cmp),
+    AbsoluteReadX(cmp)
+  ],
+
+  # dec $nnnn, x
+  0xde: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_x_lo_increment_pc,
+    read_from_effective_fix_address,
+    read_from_effective_address,
+    AbsoluteReadModifyWriteX(dec),
+    write_new_to_effective_address
+  ],
+
+  # cpx #$xx
+  0xe0: [
+    Immediate(cpx)
+  ],
+
+  
 
   # beq r
   0xf0: [

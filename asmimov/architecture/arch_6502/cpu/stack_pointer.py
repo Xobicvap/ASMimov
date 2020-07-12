@@ -1,4 +1,4 @@
-from architecture.math.hexnum import ByteValue
+from architecture.math.hexnum import ByteValue, WordValue
 
 class StackPointer(ByteValue):
 
@@ -7,4 +7,4 @@ class StackPointer(ByteValue):
     self.effective_address = 0x100
 
   def get_effective(self):
-    return self.value + self.effective_address
+    return WordValue(self.value, 0x01)

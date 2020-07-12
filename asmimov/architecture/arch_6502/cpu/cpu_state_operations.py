@@ -204,15 +204,6 @@ def logical_and(cpu):
   v2 = a & v
   return post_logical_ops(cpu, v2)
 
-def bit_op(cpu):
-  v = cpu.DR()
-  a = cpu.a()
-  v2 = a & v
-  cpu.c(v2.zero())
-  cpu.n(v.bit_set(7))
-  cpu.v(v.bit_set(6))
-  return cpu, True
-
 ####################################################
 # ADD / SUBTRACT / INC / DEC
 ####################################################
@@ -233,13 +224,35 @@ def adc(cpu):
   cpu.n(temp.negative())
   return cpu, True
 
-
 def decrement(cpu, reg, name):
   reg = reg - 1
   cpu.n(reg.negative())
   cpu.z(reg.zero())
   cpu.register(name, reg)
   return cpu, True
+
+def increment(cpu, reg, name):
+  reg = reg + 1
+  cpu.n(reg.negative())
+  cpu.z(reg.zero())
+  cpu.register(name, reg)
+  return cpu, True
+
+def dec(cpu):
+  v = cpu.DR()
+  v = v - 1
+  cpu.n(v.negative())
+  cpu.z(v.zero())
+  cpu.DR(v)
+  return cpu
+
+def inc(cpu):
+  v = cpu.DR()
+  v = v + 1
+  cpu.n(v.negative())
+  cpu.z(v.zero())
+  cpu.DR(v)
+  return cpu
 
 def dey(cpu):
   y = cpu.y()
@@ -248,6 +261,14 @@ def dey(cpu):
 def dex(cpu):
   x = cpu.x()
   return decrement(cpu, x, "X")
+
+def iny(cpu):
+  y = cpu.y()
+  return increment(cpu, y, "Y")
+
+def inx(cpu):
+  x = cpu.x()
+  return increment(cpu, x, "X")
 
 ####################################################
 # READ / WRITE
@@ -264,6 +285,57 @@ def stx(cpu):
 def sty(cpu):
   cpu = write_y_to_effective_address(cpu)
   return cpu, True
+
+def lda(cpu):
+  cpu.a(cpu.DR())
+  return cpu, True
+
+def ldx(cpu):
+  cpu.x(cpu.DR())
+  return cpu, True
+
+def ldy(cpu):
+  cpu.y(cpu.DR())
+  return cpu, True
+
+####################################################
+# COMPARISONS
+####################################################
+
+def bit_op(cpu):
+  v = cpu.DR()
+  a = cpu.a()
+  v2 = a & v
+  cpu.c(v2.zero())
+  cpu.n(v.bit_set(7))
+  cpu.v(v.bit_set(6))
+  return cpu, True
+
+def comparison(op1, op2, cpu):
+  temp = op1 - op2
+  carry = 1 if op1.value >= op2.value else 0
+  zero = 1 if op1.value == op2.value else 0
+  negative = 1 if temp.negative() else 0
+
+  cpu.c(carry)
+  cpu.z(zero)
+  cpu.n(negative)
+  return cpu, True
+
+def cpy(cpu):
+  v = cpu.DR()
+  y = cpu.y()
+  return comparison(y, v, cpu)
+
+def cpx(cpu):
+  v = cpu.DR()
+  x = cpu.x()
+  return comparison(x, v, cpu)
+
+def cmp(cpu):
+  v = cpu.DR()
+  a = cpu.a()
+  return comparison(a, v, cpu)
 
 ####################################################
 # OPERATIONS CLASSES
@@ -356,6 +428,11 @@ class ZeroPageReadModifyWriteX(OperationType):
     cpu, _ = self.operation(cpu)
     return cpu, None
 
+class ZeroPageReadY(OperationType):
+  def __call__(self, cpu):
+    cpu = read_from_effective_address(cpu)
+    return self.operation(cpu)
+
 class IndexedIndirectRead(OperationType):
   def __call__(self, cpu):
     cpu = read_from_effective_address(cpu)
@@ -363,14 +440,14 @@ class IndexedIndirectRead(OperationType):
 
 class IndirectIndexedRead(OperationType):
   def __call__(self, cpu):
-    cpu, state = indexed_indirect_read_and_fix(cpu)
+    cpu, state = indirect_indexed_read_and_fix(cpu)
     if state is None:
       return cpu, state
     return self.operation(cpu)
 
 class IndirectIndexedWrite(OperationType):
   def __call__(self, cpu):
-    return indexed_indirect_read_and_fix(cpu)
+    return indirect_indexed_read_and_fix(cpu)
 
 
 

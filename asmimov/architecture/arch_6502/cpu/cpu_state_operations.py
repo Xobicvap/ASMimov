@@ -13,6 +13,13 @@ def compute_z(v):
   return 1 if v == 0 else 0
 
 ####################################################
+# NO OPERATION
+####################################################
+
+def nop(cpu):
+  return cpu, True
+
+####################################################
 # PUSH / PULL
 ####################################################
 
@@ -217,6 +224,22 @@ def adc(cpu):
     a = DecimalByteValue(a)
 
   temp = a + v + cpu.c()
+  cpu.c(temp.carry())
+  cpu.a(ByteValue(temp))
+  cpu.v(temp.overflow())
+  cpu.z(temp.zero())
+  cpu.n(temp.negative())
+  return cpu, True
+
+def sbc(cpu):
+  v = cpu.DR()
+  a = cpu.a()
+
+  if cpu.d() == 1:
+    v = DecimalByteValue(v)
+    a = DecimalByteValue(a)
+
+  temp = a - v - cpu.c()
   cpu.c(temp.carry())
   cpu.a(ByteValue(temp))
   cpu.v(temp.overflow())

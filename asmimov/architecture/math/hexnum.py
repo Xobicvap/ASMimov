@@ -183,6 +183,54 @@ class DecimalByteValue(ByteValue):
     return temp
 
   def __sub__(self, other):
+
+    temp_negative = self.negative()
+    if isinstance(other, DecimalByteValue):
+      other_value = other.value
+      other_byte = other
+    else:
+      other_value = other
+      other_byte = DecimalByteValue(other)
+
+    temp_value = self.value
+    dec_hi_nibble_temp = (temp_value & 0xf0) >> 4
+    dec_lo_nibble_temp = temp_value & 0x0f
+    dec_hi_nibble_other = (other_value & 0xf0) >> 4
+    dec_lo_nibble_other = other_value & 0x0f
+
+    if self.value < other.value:
+      if dec_lo_nibble_other < dec_lo_nibble_temp:
+        dec_lo_nibble_other = dec_lo_nibble_other + 10
+        dec_hi_nibble_other = dec_hi_nibble_other - 1
+        dec_lo_result = dec_lo_nibble_other - dec_lo_nibble_temp
+        dec_hi_result = dec_hi_nibble_other - dec_hi_nibble_temp
+      tens = dec_hi_result * 10
+      temp_result = tens + dec_lo_result
+      temp_result = -temp_result
+      temp_result = 100 + temp_result
+    else:
+      if dec_lo_nibble_temp < dec_lo_nibble_other:
+        dec_lo_nibble_temp = dec_lo_nibble_temp + 10
+        dec_hi_nibble_temp = dec_hi_nibble_temp - 1
+
+        dec_lo_result = dec_lo_nibble_temp - dec_lo_nibble_other
+        dec_hi_result = dec_hi_nibble_temp - dec_hi_nibble_other
+
+        tens = dec_hi_result * 10
+        temp_result = tens + dec_lo_result
+    carry = temp_result > 99
+    if carry:
+      temp_result = temp_result - 100
+      self.carry_happened = True
+    xstr = "0x" + str(temp_result)
+    x = int(xstr, 16)
+
+    temp = DecimalByteValue(x)
+    temp = self.compute_overflow(other_byte, temp_negative, temp)
+
+    return temp
+
+  def __sub__(self, other):
     temp = ByteValue(self.value)
     if isinstance(other, ByteValue):
       temp.value = self.value - other.value

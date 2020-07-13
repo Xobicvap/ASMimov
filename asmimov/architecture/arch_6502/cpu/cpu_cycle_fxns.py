@@ -816,7 +816,7 @@ per_cycle_fxns = {
     Immediate(cpy)
   ],
 
-  # lda ($zp, x)
+  # cmp ($zp, x)
   0xc1: [
     fetch_pointer_address_increment_pc,
     read_pointer_add_x,
@@ -874,11 +874,13 @@ per_cycle_fxns = {
     AbsoluteRead(cmp)
   ],
 
-  # cpx $nnnn
+  # dec $nnnn
   0xce: [
     fetch_address_lo_byte_increment_pc,
     fetch_address_hi_byte_increment_pc,
-    AbsoluteRead(cpx)
+    read_from_effective_address,
+    AbsoluteReadModifyWrite(dec),
+    write_new_to_effective_address
   ],
 
   # bne r
@@ -897,7 +899,7 @@ per_cycle_fxns = {
     IndexedIndirectRead(cmp)
   ],
 
-  # lda $zp, x
+  # cmp $zp, x
   0xd5: [
     fetch_address_zero_page_increment_pc,
     read_effective_add_x,
@@ -949,12 +951,133 @@ per_cycle_fxns = {
     Immediate(cpx)
   ],
 
-  
+  # sbc ($zp, x)
+  0xe1: [
+    fetch_pointer_address_increment_pc,
+    read_pointer_add_x,
+    indexed_indirect_address_lo,
+    indexed_indirect_address_hi,
+    IndexedIndirectRead(cmp)
+  ],
+
+  # cmp $zp
+  0xe4: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(cmp)
+  ],
+
+  # sbc $zp
+  0xe5: [
+    fetch_address_zero_page_increment_pc,
+    ZeroPageRead(sbc)
+  ],
+
+  # inc $zp
+  0xe6: [
+    fetch_address_zero_page_increment_pc,
+    read_from_effective_address,
+    ZeroPageReadModifyWrite(inc),
+    write_new_to_effective_address
+  ],
+
+  # inx
+  0xe8: [
+    Implied(inx)
+  ],
+
+  0xe9: [
+    Immediate(sbc)
+  ],
+
+  0xea: [
+    Implied(nop)
+  ],
+
+  # cpx $nnnn
+  0xec: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(cmp)
+  ],
+
+  # sbc $nnnn
+  0xed: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    AbsoluteRead(sbc)
+  ],
+
+  # inc $nnnn
+  0xee: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_increment_pc,
+    read_from_effective_address,
+    AbsoluteReadModifyWrite(inc),
+    write_new_to_effective_address
+  ],
 
   # beq r
   0xf0: [
     fetch_value_and_increment_pc,
     Relative(beq),
     Relative(beq)
-  ]
+  ],
+
+  # sbc ($zp), y
+  0xf1: [
+    fetch_pointer_address_increment_pc,
+    fetch_indirect_effective_address_lo,
+    fetch_indirect_effective_address_hi_add_y,
+    IndexedIndirectRead(sbc),
+    IndexedIndirectRead(sbc)
+  ],
+
+  # sbc $zp, x
+  0xf5: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_x,
+    ZeroPageReadX(sbc)
+  ],
+
+  # inc $zp, x
+  0xf6: [
+    fetch_address_zero_page_increment_pc,
+    read_effective_add_x,
+    read_from_effective_address,
+    ZeroPageReadModifyWriteX(inc),
+    write_new_to_effective_address
+  ],
+
+  # cld
+  0xf8: [
+    Implied(sed)
+  ],
+
+  # cmp $nnnn, y
+  0xf9: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_y_lo_increment_pc,
+    AbsoluteReadY(sbc),
+    AbsoluteReadY(sbc)
+  ],
+
+  # sbc $nnnn, x
+  0xfd: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_x_lo_increment_pc,
+    AbsoluteReadX(sbc),
+    AbsoluteReadX(sbc)
+  ],
+
+  # inc $nnnn, x
+  0xfe: [
+    fetch_address_lo_byte_increment_pc,
+    fetch_address_hi_byte_add_x_lo_increment_pc,
+    read_from_effective_fix_address,
+    read_from_effective_address,
+    AbsoluteReadModifyWriteX(inc),
+    write_new_to_effective_address
+  ],
+
+
 }

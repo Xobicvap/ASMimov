@@ -1,3 +1,4 @@
+from architecture.math.hexnum import WordValue
 
 class AddressBus:
 

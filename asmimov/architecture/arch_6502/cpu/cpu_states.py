@@ -2,6 +2,7 @@ from architecture.math.hexnum import WordValue
 
 def increment_pc(cpu):
   cpu.pc(cpu.pc() + 1)
+  cpu.pc().fix_page_boundaries()
   return cpu
 
 ################################################################

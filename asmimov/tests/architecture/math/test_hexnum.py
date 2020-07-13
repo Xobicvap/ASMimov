@@ -203,6 +203,8 @@ class ByteValueTest(unittest.TestCase):
   def test_add_byte_value_page_boundary_up(self):
     v1 = WordValue(0xc08f)
     v2 = v1 + ByteValue(0x7f)
+    self.assertEqual(0xc00e, v2.value)
+    v2.fix_page_boundaries()
     self.assertEqual(0xc10e, v2.value)
 
   def test_add_byte_value_added_is_negative(self):
@@ -213,6 +215,8 @@ class ByteValueTest(unittest.TestCase):
   def test_add_byte_value_page_boundary_down(self):
     v1 = WordValue(0x0705)
     v2 = v1 + ByteValue(0x81)
+    self.assertEqual(0x0786, v2.value)
+    v2.fix_page_boundaries()
     self.assertEqual(0x0686, v2.value)
 
   def test_sub_byte_value(self):

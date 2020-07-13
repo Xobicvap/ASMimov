@@ -254,7 +254,7 @@ class WordValue:
       else:
         self.hi_byte = ByteValue(hi_byte)
 
-      self.value = (self.hi_byte.value << 8) + self.lo_byte.value
+      self.compute_value()
       self.page_boundary_down = False
       self.page_boundary_up = False
     else:
@@ -267,6 +267,12 @@ class WordValue:
       else:
         self.lo_byte = ByteValue(v & 0xff)
         self.hi_byte = ByteValue(v >> 8)
+
+      self.page_boundary_down = False
+      self.page_boundary_up = False
+
+  def compute_value(self):
+    self.value = (self.hi_byte.value << 8) + self.lo_byte.value
 
   def get(self):
     return self.value
@@ -292,6 +298,7 @@ class WordValue:
     elif self.page_boundary_up:
       self.hi_byte = self.hi_byte + 1
       needed_fix = True
+    self.compute_value()
     return needed_fix
 
   def set_lo_byte(self, lo_byte):

@@ -1077,7 +1077,5 @@ per_cycle_fxns = {
     read_from_effective_address,
     AbsoluteReadModifyWriteX(inc),
     write_new_to_effective_address
-  ],
-
-
+  ]
 }

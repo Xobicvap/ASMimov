@@ -4,11 +4,9 @@ class AddressBus:
 
   def __init__(self, memory):
     self.memory = memory
-    #self.address = 0
     self.address_word = WordValue(0)
 
   def set(self, address):
-    #self.address = address.get() if isinstance(address, WordValue) else address
     self.address_word = address if isinstance(address, WordValue) else WordValue(address)
 
   def write(self, value, address=None):

@@ -8,60 +8,56 @@ from architecture.arch_6502.cpu.cpu_states import *
 
 class CpuStatesReadTest(unittest.TestCase):
 
+  @classmethod
+  def setUpClass(cls):
+    cls.cpu = CPU(Registers(), Memory())
+
   def test_irq_vectors(self):
-    cpu = CPU(Registers(), Memory())
+    self.cpu.address_bus.set(0xfffc)
+    self.cpu.address_bus.write(0x40)
+    self.cpu.address_bus.set(0xfffd)
+    self.cpu.address_bus.write(0x80)
+    self.cpu.pc(0x8ffa)
 
-    cpu.address_bus.set(0xfffc)
-    cpu.address_bus.write(0x40)
-    cpu.address_bus.set(0xfffd)
-    cpu.address_bus.write(0x80)
-    cpu.pc(0x8ffa)
+    self.cpu, state = read_irq_vector_lo(self.cpu)
+    self.assertEqual(0x40, self.cpu.pc().get_lo_byte().value)
 
-    cpu, state = read_irq_vector_lo(cpu)
-    self.assertEqual(0x40, cpu.pc().get_lo_byte().value)
-
-    cpu, state = read_irq_vector_hi(cpu)
-    self.assertEqual(0x80, cpu.pc().get_hi_byte().value)
-    self.assertEqual(0x40, cpu.pc().get_lo_byte().value)
-    self.assertEqual(0x8040, cpu.pc().get())
+    self.cpu, state = read_irq_vector_hi(self.cpu)
+    self.assertEqual(0x80, self.cpu.pc().get_hi_byte().value)
+    self.assertEqual(0x40, self.cpu.pc().get_lo_byte().value)
+    self.assertEqual(0x8040, self.cpu.pc().get())
 
   def test_read_and_throw_away(self):
-    cpu = CPU(Registers(), Memory())
+    self.cpu.pc(0x7cff)
 
-    cpu.pc(0x7cff)
-
-    cpu, state = read_next_and_throw_away(cpu)
-    self.assertEqual(0x7cff, cpu.pc().get())
+    self.cpu, state = read_next_and_throw_away(self.cpu)
+    self.assertEqual(0x7cff, self.cpu.pc().get())
 
   def test_read_next_throw_away_inc_pc(self):
-    cpu = CPU(Registers(), Memory())
+    self.cpu.pc(0x7cff)
 
-    cpu.pc(0x7cff)
-
-    cpu, state = read_next_throw_away_inc_pc(cpu)
-    self.assertEqual(0x7d00, cpu.pc().get())
+    self.cpu, state = read_next_throw_away_inc_pc(self.cpu)
+    self.assertEqual(0x7d00, self.cpu.pc().get())
 
   def test_read_from_effective_address_with_without_pg_bnd_fix(self):
-    cpu = CPU(Registers(), Memory())
+    self.cpu.address_bus.set(0x70ff)
+    self.cpu.address_bus.write(0x44)
+    self.cpu.address_bus.set(0x7100)
+    self.cpu.address_bus.write(0xcf)
 
-    cpu.address_bus.set(0x70ff)
-    cpu.address_bus.write(0x44)
-    cpu.address_bus.set(0x7100)
-    cpu.address_bus.write(0xcf)
-
-    cpu.address_bus.set(0x70ff)
-    cpu, state = read_from_effective_address(cpu)
+    self.cpu.address_bus.set(0x70ff)
+    self.cpu, state = read_from_effective_address(self.cpu)
     self.assertEqual(None, state)
-    v = cpu.DR()
+    v = self.cpu.DR()
     self.assertEqual(0x44, v.value)
 
-    cpu.pc(0x70ff)
-    cpu.pc(cpu.pc() + 1)
-    cpu.address_bus.set(cpu.pc())
+    self.cpu.pc(0x70ff)
+    self.cpu.pc(self.cpu.pc() + 1)
+    self.cpu.address_bus.set(self.cpu.pc())
 
-    cpu, state = read_from_effective_fix_address(cpu)
+    self.cpu, state = read_from_effective_fix_address(self.cpu)
     self.assertEqual(None, state)
-    v = cpu.DR()
+    v = self.cpu.DR()
     self.assertEqual(0xcf, v.value)
-    self.assertEqual(0x7100, cpu.address_bus.address_word.get())
+    self.assertEqual(0x7100, self.cpu.address_bus.address_word.get())
 

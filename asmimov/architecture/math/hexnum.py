@@ -1,5 +1,7 @@
 class ByteValue:
   def __init__(self, v):
+    if isinstance(v, ByteValue):
+      v = v.value
     self.max_value = 256
     if v >= self.max_value:
       raise Exception("ByteValue must be < 256")
@@ -302,13 +304,15 @@ class WordValue:
     return needed_fix
 
   def set_lo_byte(self, lo_byte):
-    self.lo_byte = ByteValue(lo_byte)
+    self.lo_byte = ByteValue(lo_byte) if not isinstance(lo_byte, ByteValue) \
+      else lo_byte
     temp_hi_byte = self.hi_byte.value
     self.value = (temp_hi_byte << 8) + self.lo_byte.value
 
   def set_hi_byte(self, hi_byte):
-    self.hi_byte = ByteValue(hi_byte)
-    temp_hi_byte = hi_byte << 8
+    self.hi_byte = ByteValue(hi_byte) if not isinstance(hi_byte, ByteValue) \
+      else hi_byte
+    temp_hi_byte = self.hi_byte.value << 8
     self.value = temp_hi_byte + self.lo_byte.value
 
   def __add__(self, other):
@@ -344,3 +348,6 @@ class WordValue:
     if temp < 0:
       temp = temp + self.max_value
     return WordValue(temp)
+
+  def __str__(self):
+    return hex(self.value)

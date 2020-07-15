@@ -3,14 +3,20 @@ from .soft_switches import SoftSwitches
 
 class Memory:
 
-  def __init__(self, num_banks=1, soft_switches=None):
+  def __init__(self, num_banks=1, power_on_behavior=0, soft_switches=None):
     self.memory_banks = []
     self.current_bank = 0
     self.soft_switches = SoftSwitches() if soft_switches is not None else soft_switches
     for i in range(0, num_banks):
-      self.memory_banks[i] = MemoryBank()
+      self.memory_banks.append(MemoryBank(power_on_behavior))
+
+  def set_bank(self, memory_bank, bank_num):
+    self.memory_banks[bank_num] = memory_bank
 
   def read(self, address):
+    # keep for debugging
+    memory_bank = self.memory_banks[self.current_bank]
+    v = memory_bank.read(address)
     return self.memory_banks[self.current_bank].read(address)
 
   def write(self, address, value):

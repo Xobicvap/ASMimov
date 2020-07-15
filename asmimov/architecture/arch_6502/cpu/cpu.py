@@ -74,17 +74,20 @@ class CPU:
   def IR(self, value=None):
     if value is None:
       return self.instruction_register
-    self.instruction_register.value = value
+    self.instruction_register = value if isinstance(value, ByteValue) else\
+      ByteValue(value)
 
   def DR(self, value=None):
     if value is None:
       return self.data_register
-    self.data_register.value = value
+    self.data_register = value if isinstance(value, ByteValue) else \
+      ByteValue(value)
 
   def D2(self, value=None):
     if value is None:
       return self.d2
-    self.d2.value = value
+    self.d2 = value if isinstance(value, ByteValue) else \
+      ByteValue(value)
 
   def set_fix_effective_address(self):
     self.fix_effective = True

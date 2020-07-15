@@ -33,6 +33,6 @@ class Registers:
     setattr(self, name.lower(), register)
 
   def read(self, name):
-    if name not in self.register_names:
+    if name.upper() not in self.register_names:
       raise Exception(name + " not in register names when getting!")
     return getattr(self, name.lower())

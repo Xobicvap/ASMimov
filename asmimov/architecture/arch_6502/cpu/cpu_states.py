@@ -1,4 +1,4 @@
-from architecture.math.hexnum import WordValue
+from architecture.math.hexnum import WordValue, ByteValue
 
 def increment_pc(cpu):
   cpu.pc(cpu.pc() + 1)
@@ -41,13 +41,13 @@ def push_pcl_and_decrement_sp(cpu):
 def pull_pcl_and_increment_sp(cpu):
   cpu = address_of_stack(cpu)
   cpu.pc().set_lo_byte(cpu.address_bus.read())
-  cpu.address_bus.write(0)
+  cpu.address_bus.write(ByteValue(0))
   return increment_sp(cpu)
 
 def pull_pch(cpu):
   cpu = address_of_stack(cpu)
   cpu.pc().set_hi_byte(cpu.address_bus.read())
-  cpu.address_bus.write(0)
+  cpu.address_bus.write(ByteValue(0))
   # don't increment sp?
   # cpu, _ = increment_sp(cpu)
   # return cpu, True
@@ -62,20 +62,30 @@ def push_p_with_b_flag_and_decrement_sp(cpu):
 
 def pull_p_and_increment_sp(cpu):
   cpu = address_of_stack(cpu)
-  cpu.p(cpu.address_bus.read())
-  cpu.address_bus.write(0)
+  v = cpu.address_bus.read()
+  # bits 5 and 4 don't actually exist and have to be
+  # read directly from the stack
+  # in P they are never set
+  v = v & 0b11001111
+  cpu.p(v)
+  cpu.address_bus.write(ByteValue(0))
   return increment_sp(cpu)
 
 def push_register_decrement_sp(cpu, register):
   v = cpu.register(register)
   cpu = address_of_stack(cpu)
+  if register == "P":
+    v = v | 0b00110000
+
   cpu.address_bus.write(v)
   cpu, _ = decrement_sp(cpu)
   return cpu, True
 
 def pull_register(cpu, register):
+  cpu = address_of_stack(cpu)
   v = cpu.address_bus.read()
   cpu.register(register, v)
+  cpu.address_bus.write(ByteValue(0))
   return cpu, True
 
 ################################################################
@@ -102,12 +112,15 @@ def read_next_and_throw_away(cpu):
 def read_next_throw_away_inc_pc(cpu):
   cpu, _ = read_next_and_throw_away(cpu)
   cpu.pc(cpu.pc() + 1)
+  cpu.pc().fix_page_boundaries()
   return cpu, None
 
 def read_from_effective_fix_address(cpu):
+  print(str(cpu.address_bus.memory.memory_banks[0]))
+  cpu.address_bus.address_word.fix_page_boundaries()
   v = cpu.address_bus.read()
   cpu.DR(v)
-  cpu.address_bus.address_word.fix_page_boundaries()
+
   return cpu, None
 
 def read_from_effective_address(cpu):
@@ -159,8 +172,7 @@ def fetch_instruction(cpu):
   cpu.address_bus.set(cpu.pc())
   cpu, _ = increment_pc(cpu)
   cpu.IR(cpu.address_bus.read())
-  cpu.states = cpu.determine_instruction(cpu.IR())
-  return cpu, None
+  return cpu, False
 
 def fetch_value_and_increment_pc(cpu):
   cpu.address_bus.set(cpu.pc())

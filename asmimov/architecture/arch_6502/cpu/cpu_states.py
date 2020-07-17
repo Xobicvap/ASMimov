@@ -130,7 +130,7 @@ def read_from_effective_address(cpu):
 
 def read_effective_add_index(cpu, index):
   # not sure it does anything with this?
-  cpu = read_from_effective_address(cpu)
+  cpu, _ = read_from_effective_address(cpu)
   # again, probably not accurate, but in service to
   # getting things done, meh
   cpu.address_bus.set(cpu.address_bus.address_word + index)
@@ -170,7 +170,7 @@ def copy_lo_addr_to_pcl_and_fetch_hi_addr_to_pch(cpu):
 
 def fetch_instruction(cpu):
   cpu.address_bus.set(cpu.pc())
-  cpu, _ = increment_pc(cpu)
+  cpu = increment_pc(cpu)
   cpu.IR(cpu.address_bus.read())
   return cpu, False
 
@@ -178,21 +178,25 @@ def fetch_value_and_increment_pc(cpu):
   cpu.address_bus.set(cpu.pc())
   v = cpu.address_bus.read()
   cpu.DR(v)
-  return increment_pc(cpu)
+  cpu = increment_pc(cpu)
+  return cpu, None
 
 # absolute instructions
+# this is identical to fetch_value_and_increment_pc apart from name
 def fetch_address_lo_byte_increment_pc(cpu):
   cpu.address_bus.set(cpu.pc())
   pcl = cpu.address_bus.read()
   cpu.DR(pcl)
-  return increment_pc(cpu)
+  cpu = increment_pc(cpu)
+  return cpu, None
 
 def fetch_address_hi_byte_increment_pc(cpu):
   cpu.address_bus.set(cpu.pc())
   pch = cpu.address_bus.read()
   address_word = WordValue(cpu.DR(), pch)
   cpu.address_bus.set(address_word)
-  return increment_pc(cpu)
+  cpu = increment_pc(cpu)
+  return cpu, None
 
 def fetch_pch_copy_to_pc(cpu):
   # don't increment past page
@@ -211,19 +215,23 @@ def fetch_pch_copy_to_pc(cpu):
 # absolute indexed
 def fetch_address_hi_byte_add_index_lo_increment_pc(cpu, index):
   cpu.address_bus.set(cpu.pc())
+  # this too is confusing; PC here is PC + 2 (high byte of absolute addr)
+  # so what is read as pch is that; it reads the _byte that's there_, not
+  # the high byte of the PC address itself
+  # e.g. if PC(+2) = 8004 and fe is stored at 8004, that's what will become the
   pch = cpu.address_bus.read()
-  cpu.address_bus.read().set_hi_byte(pch)
+
   index.unsigned = True
-  temp_addr = WordValue(cpu.address_bus.address) + index
+  temp_addr = WordValue(cpu.DR() + index, pch)
   cpu.address_bus.set(temp_addr)
 
-  return increment_pc(cpu)
+  return increment_pc(cpu), None
 
 def fetch_address_hi_byte_add_x_lo_increment_pc(cpu):
-  return fetch_address_hi_byte_add_index_lo_increment_pc(cpu.x())
+  return fetch_address_hi_byte_add_index_lo_increment_pc(cpu, cpu.x())
 
 def fetch_address_hi_byte_add_y_lo_increment_pc(cpu):
-  return fetch_address_hi_byte_add_index_lo_increment_pc(cpu.y())
+  return fetch_address_hi_byte_add_index_lo_increment_pc(cpu, cpu.y())
 
 def fetch_address_zero_page_increment_pc(cpu):
   cpu.address_bus.set(cpu.pc())
@@ -232,7 +240,7 @@ def fetch_address_zero_page_increment_pc(cpu):
   hi_byte = 0
   address_value = WordValue(lo_byte, hi_byte)
   cpu.address_bus.set(address_value)
-  return increment_pc(cpu)
+  return increment_pc(cpu), None
 
 def fetch_indirect_effective_address_lo(cpu):
   # previous instruction fetched the pointer (the operand following the instruction)

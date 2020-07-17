@@ -18,3 +18,10 @@ class AddressBus:
   def read(self):
     return self.memory.read(self.address_word.get())
 
+  def memset(self, memory_map):
+    for address, value in memory_map.items():
+      self.memory.write(address, value)
+
+  def bank_switch(self, banknum):
+    self.memory.switch_bank(banknum)
+

@@ -61,3 +61,34 @@ class CpuStatesReadTest(unittest.TestCase):
     self.assertEqual(0xcf, v.value)
     self.assertEqual(0x7100, self.cpu.address_bus.address_word.get())
 
+  def test_read_effective_add_index(self):
+    self.cpu.address_bus.set(0xfbcd)
+    self.cpu.address_bus.write(0x88)
+    self.cpu.address_bus.set(0xfb01)
+    self.cpu.address_bus.write(0xee)
+
+    self.cpu.y(0xcc)
+    self.cpu, state = read_effective_add_y(self.cpu)
+
+    address_read_from = self.cpu.address_bus.address_word.get()
+    self.assertEqual(0xfbcd, address_read_from)
+    self.assertEqual(None, state)
+
+    self.cpu.x(0x34)
+    self.cpu, state = read_effective_add_x(self.cpu)
+    address_read_from = self.cpu.address_bus.address_word.get()
+    self.assertEqual(0xfb01, address_read_from)
+    self.assertEqual(None, state)
+
+  def test_read_pointer_add_x(self):
+    self.cpu.DR(0x62)
+    self.cpu.x(0x13)
+
+    self.cpu, state = read_pointer_add_x(self.cpu)
+    self.assertEqual(None, state)
+    self.assertEqual(0x75, self.cpu.DR().value)
+
+
+
+
+

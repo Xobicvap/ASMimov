@@ -7,7 +7,7 @@ class SystemCPU:
     self.current_steps = []
 
   def determine_instruction(self):
-    instructions = per_cycle_fxns(self.cpu.IR())
+    instructions = per_cycle_fxns[self.cpu.IR().value]
     self.current_steps = instructions
 
   def step(self):
@@ -19,8 +19,8 @@ class SystemCPU:
     # means there are more instructions following
     if state is None:
       pass
-    elif state:
-      self.determine_instruction()
     elif not state:
+      self.determine_instruction()
+    elif state:
       self.current_steps = []
     self.cycles = self.cycles + 1

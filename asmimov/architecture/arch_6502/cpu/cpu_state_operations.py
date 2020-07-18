@@ -1,5 +1,5 @@
 from .cpu_states import *
-from architecture.arch_6502.math.hexnum import WordValue,\
+from architecture.math.hexnum import WordValue,\
   DecimalByteValue, ByteValue
 
 # wait... why bit set and not bit at? same thing
@@ -139,6 +139,9 @@ def beq(cpu):
 ####################################################
 
 def post_shift(cpu, implied, v):
+  # in a RWM scenario the write here is valid.
+  # not sure if that's true in an implied sense?
+  # we'll find out! weeknights at 8!
   if implied:
     cpu.a(v)
   else:
@@ -379,12 +382,12 @@ class Relative(OperationType):
 
 class Implied(OperationType):
   def __call__(self, cpu):
-    cpu = read_next_and_throw_away(cpu)
+    cpu, _ = read_next_and_throw_away(cpu)
     return self.operation(cpu, True)
 
 class Immediate(OperationType):
   def __call__(self, cpu):
-    cpu = fetch_value_and_increment_pc(cpu)
+    cpu, _ = fetch_value_and_increment_pc(cpu)
     return self.operation(cpu)
 
 # this last step of writes is never different
@@ -394,71 +397,71 @@ class WriteRegisterOperation(OperationType):
 
 class AbsoluteRead(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     return self.operation(cpu)
 
 class AbsoluteReadModifyWrite(OperationType):
   def __call__(self, cpu):
-    cpu = write_back_to_effective_address(cpu)
+    cpu, _ = write_back_to_effective_address(cpu)
     cpu, _ = self.operation(cpu)
     return cpu, None
 
 class AbsoluteReadX(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     if cpu.address_bus.address_word.fix_page_boundaries():
       return cpu, None
     return self.operation(cpu)
 
 class AbsoluteReadModifyWriteX(OperationType):
   def __call__(self, cpu):
-    cpu = write_back_to_effective_address(cpu)
+    cpu, _ = write_back_to_effective_address(cpu)
     cpu, _ = self.operation(cpu)
     return cpu, None
 
 class AbsoluteReadY(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     if cpu.address_bus.address_word.fix_page_boundaries():
       return cpu, None
     return self.operation(cpu)
 
 class AbsoluteWriteY(OperationType):
   def __call__(self, cpu):
-    cpu = write_back_to_effective_address(cpu)
+    cpu, _ = write_back_to_effective_address(cpu)
     cpu, _ = self.operation(cpu)
     return cpu, None
 
 class ZeroPageRead(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     return self.operation(cpu)
 
 class ZeroPageReadModifyWrite(OperationType):
   def __call__(self, cpu):
-    cpu = write_back_to_effective_address(cpu)
+    cpu, _ = write_back_to_effective_address(cpu)
     cpu, _ = self.operation(cpu)
     return cpu, None
 
 class ZeroPageReadX(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     return self.operation(cpu)
 
 class ZeroPageReadModifyWriteX(OperationType):
   def __call__(self, cpu):
-    cpu = write_back_to_effective_address(cpu)
+    cpu, _ = write_back_to_effective_address(cpu)
     cpu, _ = self.operation(cpu)
     return cpu, None
 
 class ZeroPageReadY(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     return self.operation(cpu)
 
 class IndexedIndirectRead(OperationType):
   def __call__(self, cpu):
-    cpu = read_from_effective_address(cpu)
+    cpu, _ = read_from_effective_address(cpu)
     return self.operation(cpu)
 
 class IndirectIndexedRead(OperationType):

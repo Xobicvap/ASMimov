@@ -6,6 +6,6 @@ setup(
   description='Assembly language decompiler / interpreter',
   author='Rusty Hamilton',
   author_email='rhamilton828@gmail.com',
-  packages=['express'],
+  packages=['pysdl2'],
   license='GPL'
 )

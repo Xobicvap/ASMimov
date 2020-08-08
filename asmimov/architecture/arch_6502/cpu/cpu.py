@@ -1,9 +1,11 @@
 from .address_bus import AddressBus
+from analysis.aggregator import Aggregator
 from architecture.math.hexnum import ByteValue, WordValue
+
 
 class CPU:
 
-  def __init__(self, registers, memory):
+  def __init__(self, registers, memory, use_aggregator=False):
     self.registers = registers
     self.address_bus = AddressBus(memory)
     self.data_register = ByteValue(0)
@@ -11,10 +13,16 @@ class CPU:
     self.instruction_register = ByteValue(0)
     self.vectors = {
       "NMI": 0xFFFA,
-      "IRQ": 0xFFFC,
-      "RESET": 0xFFFE
+      "RESET": 0xFFFC,
+      "IRQ": 0xFFFE
     }
     self.fix_effective = False
+    self.use_aggregator = use_aggregator
+    self.change_map = {}
+
+  def write_change(self, name, value):
+    if self.use_aggregator:
+      self.change_map.update({name: value})
 
   def vector(self, name, next_byte=False):
     if name not in self.vectors:
@@ -25,11 +33,18 @@ class CPU:
   def irq_vector(self, next_byte=False):
     return self.vector("IRQ", next_byte)
 
+  def reset_vector(self, next_byte=False):
+    return self.vector("RESET", next_byte)
+
+  def nmi_vector(self, next_byte=False):
+    return self.vector("NMI", next_byte)
+
   def register(self, name, value=None):
     if value is None:
       return self.registers.read(name)
     else:
       self.registers.write(name, value)
+      self.write_change(name, value)
 
   def sp(self, value=None):
     return self.register("SP", value)
@@ -74,7 +89,7 @@ class CPU:
   def IR(self, value=None):
     if value is None:
       return self.instruction_register
-    self.instruction_register = value if isinstance(value, ByteValue) else\
+    self.instruction_register = value if isinstance(value, ByteValue) else \
       ByteValue(value)
 
   def DR(self, value=None):
@@ -97,5 +112,3 @@ class CPU:
     if ret_val:
       self.fix_effective = False
     return ret_val
-
-

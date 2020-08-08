@@ -36,6 +36,7 @@ per_cycle_fxns = {
 
   # php
   0x08: [
+    read_next_and_throw_away,
     Implied(php)
   ],
 

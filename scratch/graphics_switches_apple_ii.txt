@@ -1,0 +1,23 @@
+WHAT ARE THE SOFT SWITCHES FOR (non-double res) GRAPHICS?
+CLRTEXT =  $C050 ;display graphics
+SETTEXT =  $C051 ;display text
+
+CLRMIXED = $C052 ;clear mixed mode- enable full graphics
+SETMIXED = $C053 ;enable graphics/text mixed mode
+
+PAGE1 =    $C054 ;select text/graphics page1
+PAGE2 =    $C055 ;select text/graphics page2
+See IIe, IIc, IIgs manual for details on how these switches
+affect 80-col bank selection.
+
+CLRHIRES = $C056 ;select Lo-res
+SETHIRES = $C057 ;select Hi-res
+
+read only (bit 7 = true)
+RDVBLBAR = $C019 ;not VBL (VBL signal low)
+RDTEXT =   $C01A ;using text mode
+RDMIXED =  $C01B ;using mixed mode
+RDPAGE2 =  $C01C ;using text/graphics page2
+RDHIRES =  $C01D ;using Hi-res graphics mode
+RDALTCH =  $C01E ;using alternate character set
+RD80VID =  $C01F ;using 80-column display mode

@@ -1,0 +1,99 @@
+**************************************************************************************
+7/18/20 notes
+**************************************************************************************
+* got worried last night because the 6502 _actually_ executes the instruction as
+    it's fetching the next. visual 6502 has it committing the result of the instruction
+    at the start of the next instruction's fetch, though, so i think i'm good unless
+    i need to emulate bus conflicts exactly.
+* what i'm calling DR and D2 don't... really exist? should check indirect instructions
+    in visual 6502 to see where intermediate values actually get stored. for now
+    i think it's safe to proceed as i am, later on though the cpu should be emulated
+    more accurately (it's already cycle-stepped, but the actual cpu states are not
+    exactly what the manual says they should be)
+
+* how do i want the overall EMULATOR to work?
+* might need to rework architecture so that other things can share memory
+
+right now we have
+  system_cpu
+    cpu
+      registers
+      address bus
+        memory banks
+          memory
+      data reg1
+      data reg2
+
+
+overall execution
+approach #1
+  system_cpu.step()
+    changes to registers
+    changes to memory
+    (log changes to aggregator)
+  system_video.step()
+    changes to VRAM / video screen
+    (log changes to aggregator)
+  system.audio.step()
+    changes to audio stream
+    (log changes to aggregator)
+  system.input.step()
+    (etc)
+
+  i.e.
+  cpu
+  video
+  audio
+  input
+  (other i/o devices, coprocessors, etc)
+
+  system_cpu.step(self, aggregator):
+    instruction(cpu, aggregator)
+    aggregator captures before state and after state
+      so it can verify the function result
+
+
+7/19 notes
+**************************************************************************
+new question:
+how do we do video?
+apple ii
+  WHAT HAPPENS WHEN MODE CHANGES DURING FRAME?
+  WHERE DOES VIDEO DISPLAY READ FROM?
+
+  vram system must be able to detect changes to soft switches that turn on
+    text vs lo-res vs hi-res (i'm not even thinking about double res modes yet!)
+  when these changes are detected what happens?
+
+  i don't think these can be interrupted in the middle of a line?
+  text mode (C051 = 1, C052 = 1, C054 = 1)
+  high level explanation, approach 1 (probably not what actually happens)
+    can we write to screen? i.e. not vblank / hblank
+    yes:
+      ?
+
+7/20 notes
+**************************************************************************
+
+things we learned from Understanding the Apple II
+
+timing signals useful to us
+phase 0: 1 MHz clock to 6502
+phase 1: inversion of phase 0
+7M: 7 MHz clock used in shifting text and hi-res video ????
+14M: 14 MHz oscillator
+
+phase 0/1 are elongated;
+  64/65 cycles for 6502 cycles is 0.978 microseconds (1.0227 MHz)
+  last of 65 cycles is 1.12 microseconds (0.8949 MHz)
+  composite: 1.0205 MHz
+
+RAM access (RAS', CAS', AX) elongated once out of every 130 cycles
+  normal duration: 0.489 microseconds
+  long duration: 0.629 microseconds
+
+
+
+
+
+

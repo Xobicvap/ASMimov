@@ -1,0 +1,53 @@
+ok so how do we actually want this to work
+
+(cpu, assuming 6502)
+power on:
+  (pre-init; does not represent actual hardware)
+    memory = 0 or random after startup
+    reset signal let go
+  Reset
+  0: AB=00FF, PC=00FF, SP = 0, IR = 0, P = 2
+  1: nothing
+  2: nothing
+  (SP is not reflected here for these next 3 cycles)
+  3: AB->0100, READ $100 = 00, SP -- (but not shown yet)
+     ; ordinarily writes $100 + SP, just reads, so is 0
+  4: AB->01FF, READ $1FF = 00, SP = 0 but really $FF
+     ; SP is actually $FF, would write $100 + SP, SP -- again
+  5: AB->01FE, READ $1FE = 00, SP = FE, SP --,
+  6: AB->FFFC, READ $FFFC = (reset lo), P = 6 (Z + I), SP = FD
+  7: AB->FFFD, READ $FFFD = (reset hi),
+        P = 6 + (N is high or low depending on vector bytes), SP
+
+
+
+by cycles:
+  8: AB->(reset), PC=6000, READ $6000, SP=FD, D = 78, PC = PC+1, IR = 78
+  9: AB->6001, READ 6001, SP=FD, D=78 (D8 read but discarded), P = P | 00000100
+     SEI over, flag InstructionFinished {P = P | 00000100}
+ 10: AB->6001, READ 6001, SP=FD, D=D8, PC = PC + 1, IR = D8
+ 11: AB->6002, READ 6002, SP=FD, D=D8 (A2 read but trashed), P = P & 11110111
+     flag IF
+ 12: AB->6002, READ 6002, SP=FD, D=A2, PC = PC + 1, IR = A2
+ 13: AB->6003, READ 6003, SP=FD, D=FF, PC = PC + 1, X = FF, P = P | 10000000
+     flag IF
+ 14: AB->6004, READ 6004, SP=FD, D=9A PC = PC + 1, IR = 9A, PC = PC + 1,
+ 15: AB->6005, READ 6005, SP=FD, D=9A (E8 read but ignored), SP=X=FF
+     flag IF
+ 16: AB->6005, READ 6005, SP=FF, D=E8, PC = PC + 1, IR = E8
+ 17: AB->6006, READ 6006, SP=FF, D=8A (ignored read), X = X + 1 = 00
+     flag IF
+ 18: AB->6006, READ 6006, SP=FF, D=8A, PC = PC + 1, IR = 8A
+ 19: AB->6007, READ 6007, SP=FF, D=8A (48 read but ignored), A=X=00
+     flag IF
+ 20: AB->6007, READ 6007, SP=FF, D=48, PC = PC + 1, IR = 48
+ 21: AB->6008, READ 6008, SP=SP-1=FE, D=48 (a9 read but ignored)
+     flag IF
+ 22: AB->6008, READ 6008, SP=FE, D=A9, PC=PC + 1, IR = A9
+ 23: AB->6009, READ 6009, SP=FE, D=08, PC=PC + 1, A=08
+     flag IF
+ 24
+
+
+
+

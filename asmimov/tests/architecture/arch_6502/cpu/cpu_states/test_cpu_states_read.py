@@ -13,9 +13,9 @@ class CpuStatesReadTest(unittest.TestCase):
     cls.cpu = CPU(Registers(), Memory())
 
   def test_irq_vectors(self):
-    self.cpu.address_bus.set(0xfffc)
+    self.cpu.address_bus.set(0xfffe)
     self.cpu.address_bus.write(0x40)
-    self.cpu.address_bus.set(0xfffd)
+    self.cpu.address_bus.set(0xffff)
     self.cpu.address_bus.write(0x80)
     self.cpu.pc(0x8ffa)
 

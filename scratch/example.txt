@@ -1,0 +1,45 @@
+imagine this is reset point:
+Text = $400
+
+.org $6000
+Reset:
+  sei                           ; 78 implied         6000
+  cld                           ; D8 implied         6001
+  ldx #$ff                      ; A2 FF immediate    6002
+  txs                           ; 9A implied         6004
+  inx                           ; E8 implied         6005
+  txa                           ; 8A implied         6006
+  pha                           ; 48 implied         6007
+  lda #$08                      ; A9 08 immediate    6008
+  jsr DivideBy7WithRemainder    ; 20 19 60 absolute  600A
+  sta Text                      ; 8D 00 04 absolute  600D
+  pla                           ; 68 implied         6010
+  tay                           ; A8 implied         6011
+  sty Text+1                    ; 8E 01 04 absolute  6012
+  sty Text+2                    ; 8C 02 04 absolute  6015
+Done:
+  jmp Done                      ; 4C 16 60 absolute
+;(divideby7 sub = 6019)
+DivideBy7WithRemainder:
+  tay                           ; 
+  sta Result
+  lsr
+  lsr
+  lsr
+  adc Result
+  ror
+  lsr
+  lsr
+  adc Result
+  ror
+  lsr
+  lsr
+  sta Result
+  tax
+  lda TimesTable7, x
+  sta Remainder
+  tya
+  sec
+  sbc Remainder
+  sta Remainder
+  rts

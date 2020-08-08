@@ -102,6 +102,16 @@ class CPU:
     self.d2 = value if isinstance(value, ByteValue) else \
       ByteValue(value)
 
+  def address_write(self, value):
+    self.address_bus.write(value)
+    self.write_change(self.address_bus.address_word.value, value)
+
+  def address_read(self):
+    return self.address_bus.read()
+
+  def address_set(self, address):
+    self.address_bus.set(address)
+
   def set_fix_effective_address(self):
     self.fix_effective = True
 

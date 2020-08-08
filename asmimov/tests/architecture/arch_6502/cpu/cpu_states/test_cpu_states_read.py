@@ -13,9 +13,9 @@ class CpuStatesReadTest(unittest.TestCase):
     cls.cpu = CPU(Registers(), Memory())
 
   def test_irq_vectors(self):
-    self.cpu.address_bus.set(0xfffe)
+    self.cpu.address_set(0xfffe)
     self.cpu.address_bus.write(0x40)
-    self.cpu.address_bus.set(0xffff)
+    self.cpu.address_set(0xffff)
     self.cpu.address_bus.write(0x80)
     self.cpu.pc(0x8ffa)
 
@@ -40,12 +40,12 @@ class CpuStatesReadTest(unittest.TestCase):
     self.assertEqual(0x7d00, self.cpu.pc().get())
 
   def test_read_from_effective_address_with_without_pg_bnd_fix(self):
-    self.cpu.address_bus.set(0x70ff)
+    self.cpu.address_set(0x70ff)
     self.cpu.address_bus.write(0x44)
-    self.cpu.address_bus.set(0x7100)
+    self.cpu.address_set(0x7100)
     self.cpu.address_bus.write(0xcf)
 
-    self.cpu.address_bus.set(0x70ff)
+    self.cpu.address_set(0x70ff)
     self.cpu, state = read_from_effective_address(self.cpu)
     self.assertEqual(None, state)
     v = self.cpu.DR()
@@ -53,7 +53,7 @@ class CpuStatesReadTest(unittest.TestCase):
 
     self.cpu.pc(0x70ff)
     self.cpu.pc(self.cpu.pc() + 1)
-    self.cpu.address_bus.set(self.cpu.pc())
+    self.cpu.address_set(self.cpu.pc())
 
     self.cpu, state = read_from_effective_fix_address(self.cpu)
     self.assertEqual(None, state)
@@ -62,9 +62,9 @@ class CpuStatesReadTest(unittest.TestCase):
     self.assertEqual(0x7100, self.cpu.address_bus.address_word.get())
 
   def test_read_effective_add_index(self):
-    self.cpu.address_bus.set(0xfbcd)
+    self.cpu.address_set(0xfbcd)
     self.cpu.address_bus.write(0x88)
-    self.cpu.address_bus.set(0xfb01)
+    self.cpu.address_set(0xfb01)
     self.cpu.address_bus.write(0xee)
 
     self.cpu.y(0xcc)

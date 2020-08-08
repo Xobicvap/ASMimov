@@ -67,14 +67,14 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.cpu, state = push_pch_and_decrement_sp(self.cpu)
     self.assertEqual(0x01fc, self.cpu.address_bus.address_word.get())
     self.assertEqual(0xfb, self.cpu.sp().value)
-    pushed_value = self.cpu.address_bus.read()
+    pushed_value = self.cpu.address_read()
     self.assertEqual(0x60, pushed_value.value)
     self.assertEqual(None, state)
 
     self.cpu, state = push_pcl_and_decrement_sp(self.cpu)
     self.assertEqual(0x01fb, self.cpu.address_bus.address_word.get())
     self.assertEqual(0xfa, self.cpu.sp().value)
-    pushed_value = self.cpu.address_bus.read()
+    pushed_value = self.cpu.address_read()
     self.assertEqual(0x02, pushed_value.value)
     self.assertEqual(None, state)
 
@@ -82,15 +82,15 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.cpu.sp(0xea)
     self.cpu.pc(WordValue(0xe632))
 
-    self.cpu.address_bus.set(WordValue(0x1ea))
+    self.cpu.address_set(WordValue(0x1ea))
     self.cpu.address_bus.write(ByteValue(0x40))
-    self.cpu.address_bus.set(WordValue(0x1eb))
+    self.cpu.address_set(WordValue(0x1eb))
     self.cpu.address_bus.write(ByteValue(0x80))
 
     self.cpu, state = pull_pcl_and_increment_sp(self.cpu)
     self.assertEqual(0x01ea, self.cpu.address_bus.address_word.get())
     self.assertEqual(0xeb, self.cpu.sp().value)
-    self.assertEqual(0, self.cpu.address_bus.read().value)
+    self.assertEqual(0, self.cpu.address_read().value)
 
     self.assertEqual(0x40, self.cpu.pc().get_lo_byte().value)
     self.assertEqual(0xe6, self.cpu.pc().get_hi_byte().value)
@@ -99,7 +99,7 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.cpu, state = pull_pch(self.cpu)
     self.assertEqual(0x01eb, self.cpu.address_bus.address_word.get())
     self.assertEqual(0xeb, self.cpu.sp().value)
-    self.assertEqual(0, self.cpu.address_bus.read().value)
+    self.assertEqual(0, self.cpu.address_read().value)
 
     self.assertEqual(0x40, self.cpu.pc().get_lo_byte().value)
     self.assertEqual(0x80, self.cpu.pc().get_hi_byte().value)
@@ -113,7 +113,7 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.cpu, state = push_p_with_b_flag_and_decrement_sp(self.cpu)
     self.assertEqual(0xe6, self.cpu.sp().value)
     self.assertEqual(0x01e7, self.cpu.address_bus.address_word.get())
-    p_value_on_stack = self.cpu.address_bus.read()
+    p_value_on_stack = self.cpu.address_read()
     self.assertEqual(0b10110100, p_value_on_stack.value)
 
     # we'll pretend we did something else before we pull P
@@ -128,7 +128,7 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.assertEqual(0b10000100, self.cpu.p().value)
     self.assertEqual(0xe8, self.cpu.sp().value)
     self.assertEqual(0x01e7, self.cpu.address_bus.address_word.get())
-    value_at_bus = self.cpu.address_bus.read()
+    value_at_bus = self.cpu.address_read()
     self.assertEqual(0, value_at_bus.value)
 
   def test_pull_push_registers_not_p(self):
@@ -140,7 +140,7 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.assertEqual(True, state)
     self.assertEqual(0xe6, self.cpu.sp().value)
     self.assertEqual(0x1e7, self.cpu.address_bus.address_word.get())
-    v = self.cpu.address_bus.read()
+    v = self.cpu.address_read()
     self.assertEqual(0x8a, v.value)
 
     # we'll pretend an operation happened before PLA
@@ -157,7 +157,7 @@ class CpuStatesPushPullTest(unittest.TestCase):
     self.assertEqual(0xe7, self.cpu.sp().value)
     self.assertEqual(0x1e7, self.cpu.address_bus.address_word.get())
     self.assertEqual(0x8a, self.cpu.a().value)
-    v = self.cpu.address_bus.read()
+    v = self.cpu.address_read()
     self.assertEqual(0, v.value)
 
 

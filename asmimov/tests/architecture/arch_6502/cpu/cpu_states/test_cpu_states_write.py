@@ -15,15 +15,15 @@ class CpuStatesWriteTest(unittest.TestCase):
     cpu = self.cpu
 
     cpu.DR(0x22)
-    cpu.address_bus.set(0x8702)
+    cpu.address_set(0x8702)
     cpu, state = write_back_to_effective_address(cpu)
     self.assertEqual(None, state)
-    self.assertEqual(0x22, cpu.address_bus.read().value)
+    self.assertEqual(0x22, cpu.address_read().value)
 
-    cpu.address_bus.set(0x8756)
+    cpu.address_set(0x8756)
     cpu, state = write_new_to_effective_address(cpu)
     self.assertEqual(True, state)
-    self.assertEqual(0x22, cpu.address_bus.read().value)
+    self.assertEqual(0x22, cpu.address_read().value)
 
   def test_write_registers_to_effective_address(self):
     cpu = self.cpu
@@ -32,18 +32,18 @@ class CpuStatesWriteTest(unittest.TestCase):
     cpu.x(0xfd)
     cpu.y(0x01)
 
-    cpu.address_bus.set(0x45)
+    cpu.address_set(0x45)
     cpu, state = write_a_to_effective_address(cpu)
     self.assertEqual(True, state)
-    self.assertEqual(0x78, cpu.address_bus.read().value)
+    self.assertEqual(0x78, cpu.address_read().value)
 
-    cpu.address_bus.set(0x242)
+    cpu.address_set(0x242)
     cpu, state = write_x_to_effective_address(cpu)
     self.assertEqual(True, state)
-    self.assertEqual(0xfd, cpu.address_bus.read().value)
+    self.assertEqual(0xfd, cpu.address_read().value)
 
-    cpu.address_bus.set(0x378)
+    cpu.address_set(0x378)
     cpu, state = write_y_to_effective_address(cpu)
     self.assertEqual(True, state)
-    self.assertEqual(0x01, cpu.address_bus.read().value)
+    self.assertEqual(0x01, cpu.address_read().value)
 

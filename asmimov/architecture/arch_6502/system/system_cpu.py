@@ -30,7 +30,7 @@ class SystemCPU:
     self.cycles = self.cycles + 1
     if self.aggregate_end_only:
       if instruction_operating is False:
-        self.aggregator.aggregate(self.cycles, self.cpu.change_map)
+        self.aggregator.aggregate(self.cycles, **self.cpu.change_map)
     else:
-      self.aggregator.aggregate(self.cycles, self.cpu.change_map)
+      self.aggregator.aggregate(self.cycles, **self.cpu.change_map)
 

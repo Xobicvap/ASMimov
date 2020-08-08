@@ -6,6 +6,7 @@ from architecture.arch_6502.cpu.registers import Registers
 from architecture.arch_6502.cpu.memory import Memory
 from architecture.arch_6502.cpu.cpu_cycle_fxns import *
 
+# this one DOES NOT test aggregation!
 class SystemCpuTest(unittest.TestCase):
 
   @classmethod
@@ -22,8 +23,8 @@ class SystemCpuTest(unittest.TestCase):
     cpu.address_bus.memset({
       0x8001: 0x00,
       0x8002: 0x78,
-      0xfffc: 0x02,
-      0xfffd: 0x81
+      0xfffe: 0x02,
+      0xffff: 0x81
     })
 
     sys = SystemCPU(cpu)
@@ -37,12 +38,12 @@ class SystemCpuTest(unittest.TestCase):
       sys.step()
     self.assertEqual(0x8102, sys.cpu.pc().value)
 
-    sys.cpu.address_bus.set(0x1ff)
-    self.assertEqual(0x80, sys.cpu.address_bus.read().value)
-    sys.cpu.address_bus.set(0x1fe)
-    self.assertEqual(0x03, sys.cpu.address_bus.read().value)
-    sys.cpu.address_bus.set(0x1fd)
-    self.assertEqual(0xb5, sys.cpu.address_bus.read().value)
+    sys.cpu.address_set(0x1ff)
+    self.assertEqual(0x80, sys.cpu.address_read().value)
+    sys.cpu.address_set(0x1fe)
+    self.assertEqual(0x03, sys.cpu.address_read().value)
+    sys.cpu.address_set(0x1fd)
+    self.assertEqual(0xb5, sys.cpu.address_read().value)
     self.assertEqual(0xfc, sys.cpu.sp().value)
     self.assertEqual(0x85, sys.cpu.p().value)
     self.assertEqual(0x8102, sys.cpu.pc().value)
@@ -128,13 +129,28 @@ class SystemCpuTest(unittest.TestCase):
       i = i + 1
     self.assertEqual(5, sys.cycles)
     self.assertEqual(0xae4d, sys.cpu.pc().value)
-    sys.cpu.address_bus.set(0x0062)
-    v = sys.cpu.address_bus.read()
+    sys.cpu.address_set(0x0062)
+    v = sys.cpu.address_read()
     self.assertEqual(0x2a, v.value)
 
   def test_php(self):
     cpu = self.cpu
 
     cpu.pc(0x8000)
-    cpu.p()
+    cpu.p(0b11000001)
 
+    cpu.sp(0xdf)
+
+    sys = SystemCPU(cpu)
+    sys.step()
+
+    self.assertEqual(0x08, sys.cpu.IR().value)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    self.assertEqual(2, len(sys.current_steps))
+    self.assertEqual(1, sys.cycles)
+
+    while len(sys.current_steps) > 0:
+      sys.step()
+    self.assertEqual(3, sys.cycles)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    sys.cpu.address_set

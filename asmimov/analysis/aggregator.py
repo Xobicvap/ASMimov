@@ -8,7 +8,9 @@ class Aggregator:
     self.change_map = {}
 
   def aggregate(self, cycle, **changes):
-    if self.change_map[cycle] is not None:
+    if not self.active:
+      return None
+    if cycle in self.change_map:
       self.change_map[cycle].update(changes)
     else:
       self.change_map[cycle] = changes

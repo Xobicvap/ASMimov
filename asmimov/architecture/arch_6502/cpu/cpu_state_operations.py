@@ -145,7 +145,7 @@ def post_shift(cpu, implied, v):
   if implied:
     cpu.a(v)
   else:
-    cpu.address_bus.write(v)
+    cpu.address_write(v)
   cpu.n(v.negative())
   cpu.z(v.zero())
   return cpu

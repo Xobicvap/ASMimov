@@ -13,7 +13,7 @@ class CpuStatesFetchTest(unittest.TestCase):
 
   def test_copy_lo_addr_to_pcl_and_fetch_hi_addr_to_pch(self):
     cpu = self.cpu
-    cpu.address_bus.set(0xe002)
+    cpu.address_set(0xe002)
     cpu.address_bus.write(0x80)
 
     # in real life the preceding cycles would have advanced the PC to this,
@@ -27,7 +27,7 @@ class CpuStatesFetchTest(unittest.TestCase):
 
   def test_fetch_instruction(self):
     cpu = self.cpu
-    cpu.address_bus.set(0x9000)
+    cpu.address_set(0x9000)
     cpu.address_bus.write(0x4d)
 
     cpu.pc(0x9000)
@@ -38,7 +38,7 @@ class CpuStatesFetchTest(unittest.TestCase):
 
   def test_fetch_value_and_increment_pc(self):
     cpu = self.cpu
-    cpu.address_bus.set(0xbf30)
+    cpu.address_set(0xbf30)
     cpu.address_bus.write(0x02)
 
     cpu.pc(0xbf30)
@@ -49,7 +49,7 @@ class CpuStatesFetchTest(unittest.TestCase):
 
   def test_fetch_address_increment_pc(self):
     cpu = self.cpu
-    cpu.address_bus.set(0xd6f2)
+    cpu.address_set(0xd6f2)
     cpu.address_bus.write(0x94)
 
     cpu.pc(0xd6f2)
@@ -58,7 +58,7 @@ class CpuStatesFetchTest(unittest.TestCase):
     self.assertEqual(0xd6f3, cpu.pc().value)
     self.assertEqual(0x94, cpu.DR().value)
 
-    cpu.address_bus.set(cpu.pc())
+    cpu.address_set(cpu.pc())
     cpu.address_bus.write(0xff)
 
     cpu, state = fetch_address_hi_byte_increment_pc(cpu)
@@ -75,7 +75,7 @@ class CpuStatesFetchTest(unittest.TestCase):
       0xc602: 0x83
     })
 
-    cpu.address_bus.set(0xc601)
+    cpu.address_set(0xc601)
     cpu.pc(0xc601)
 
     cpu, state = fetch_pch_copy_to_pc(cpu)
@@ -89,7 +89,7 @@ class CpuStatesFetchTest(unittest.TestCase):
 
     cpu.DR(0x03)
 
-    cpu.address_bus.set(0xaaff)
+    cpu.address_set(0xaaff)
     cpu.pc(0xaaff)
 
     cpu, state = fetch_pch_copy_to_pc(cpu)

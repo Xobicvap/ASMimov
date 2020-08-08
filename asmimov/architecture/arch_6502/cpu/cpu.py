@@ -1,7 +1,5 @@
 from .address_bus import AddressBus
-from analysis.aggregator import Aggregator
 from architecture.math.hexnum import ByteValue, WordValue
-
 
 class CPU:
 

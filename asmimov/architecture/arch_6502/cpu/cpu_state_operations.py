@@ -23,16 +23,17 @@ def nop(cpu):
 # PUSH / PULL
 ####################################################
 
-def php(cpu):
+# ALL of these are implied! the implied var here is a no-op
+def php(cpu, implied=None):
   return push_register_decrement_sp(cpu, "P")
 
-def pha(cpu):
+def pha(cpu, implied=None):
   return push_register_decrement_sp(cpu, "A")
 
-def pla(cpu):
+def pla(cpu, implied=None):
   return pull_register(cpu, "A")
 
-def plp(cpu):
+def plp(cpu, implied=None):
   return pull_register(cpu, "P")
 
 ####################################################
@@ -382,7 +383,6 @@ class Relative(OperationType):
 
 class Implied(OperationType):
   def __call__(self, cpu):
-    cpu, _ = read_next_and_throw_away(cpu)
     return self.operation(cpu, True)
 
 class Immediate(OperationType):

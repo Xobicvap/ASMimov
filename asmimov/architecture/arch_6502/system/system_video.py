@@ -1,6 +1,7 @@
 
 class SystemVideo:
 
+  # TODO make these a config
   def __init__(self, hblank_mod_value, hblank_length,
                vblank_mod_value, vblank_length):
     self.hblank_mod_value = hblank_mod_value

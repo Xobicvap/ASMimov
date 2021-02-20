@@ -138,10 +138,16 @@ class ByteValue:
     self.handle_underflow(True)
     return self
 
-  def __str__(self):
+  def stringify(self):
     if self.value < 0x10:
       return "0" + hex(self.value)[2:].upper()
     return hex(self.value)[2:].upper()
+
+  def __str__(self):
+    return self.stringify()
+
+  def __repr__(self):
+    return self.stringify()
 
 class DecimalByteValue(ByteValue):
 
@@ -232,15 +238,6 @@ class DecimalByteValue(ByteValue):
 
     return temp
 
-  def __sub__(self, other):
-    temp = ByteValue(self.value)
-    if isinstance(other, ByteValue):
-      temp.value = self.value - other.value
-    else:
-      temp.value = self.value - other
-
-    temp.handle_underflow()
-    return temp
 
 class WordValue:
 
@@ -350,4 +347,7 @@ class WordValue:
     return WordValue(temp)
 
   def __str__(self):
+    return hex(self.value)
+
+  def __repr__(self):
     return hex(self.value)

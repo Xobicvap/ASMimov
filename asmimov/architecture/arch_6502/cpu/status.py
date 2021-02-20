@@ -37,3 +37,9 @@ class StatusRegister(ByteValue):
     else:
       self.set_flags(value, flag_name)
 
+  def __repr__(self):
+    return super().__repr__()
+
+  def __str__(self):
+    return super().__str__()
+

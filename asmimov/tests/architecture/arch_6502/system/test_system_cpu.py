@@ -140,6 +140,9 @@ class SystemCpuTest(unittest.TestCase):
     cpu.p(0b11000001)
 
     cpu.sp(0xdf)
+    cpu.address_bus.memset({
+      0x8000: 0x08
+    })
 
     sys = SystemCPU(cpu)
     sys.step()
@@ -153,4 +156,119 @@ class SystemCpuTest(unittest.TestCase):
       sys.step()
     self.assertEqual(3, sys.cycles)
     self.assertEqual(0x8001, sys.cpu.pc().value)
-    sys.cpu.address_set
+    sys.cpu.address_set(0x1df)
+    v = sys.cpu.address_read()
+    self.assertEqual(0b11110001, v.value)
+
+  def test_ora_immediate(self):
+    cpu = self.cpu
+
+    cpu.pc(0x8000)
+    cpu.a(0b10001010)
+
+    cpu.sp(0xff)
+    cpu.address_bus.memset({
+      0x8000: 0x09,
+      0x8001: 0b111
+    })
+
+    sys = SystemCPU(cpu)
+    sys.step()
+
+    self.assertEqual(0x09, sys.cpu.IR().value)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    self.assertEqual(1, len(sys.current_steps))
+    self.assertEqual(1, sys.cycles)
+
+    while len(sys.current_steps) > 0:
+      sys.step()
+    self.assertEqual(2, sys.cycles)
+    self.assertEqual(0x8002, sys.cpu.pc().value)
+    self.assertEqual(0b10001111, sys.cpu.a().value)
+
+  def test_asl_implied(self):
+    cpu = self.cpu
+
+    cpu.pc(0x8000)
+    cpu.a(0b10001010)
+
+    cpu.sp(0xff)
+    cpu.address_bus.memset({
+      0x8000: 0x0a
+    })
+
+    sys = SystemCPU(cpu)
+    sys.step()
+
+    self.assertEqual(0x0a, sys.cpu.IR().value)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    self.assertEqual(1, len(sys.current_steps))
+    self.assertEqual(1, sys.cycles)
+
+    while len(sys.current_steps) > 0:
+      sys.step()
+    self.assertEqual(2, sys.cycles)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    self.assertEqual(0b00010100, sys.cpu.a().value)
+    self.assertEqual(1, sys.cpu.c())
+
+  def test_ora_absolute(self):
+    cpu = self.cpu
+
+    cpu.pc(0x8000)
+    cpu.a(0b10001010)
+
+    cpu.sp(0xff)
+
+    cpu.address_bus.memset({
+      0x8000: 0x0d,
+      0x8001: 0x33,
+      0x8002: 0x06,
+      0x0633: 0b00100100
+    })
+
+    sys = SystemCPU(cpu)
+    sys.step()
+
+    self.assertEqual(0x0d, sys.cpu.IR().value)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    self.assertEqual(3, len(sys.current_steps))
+    self.assertEqual(1, sys.cycles)
+
+    while len(sys.current_steps) > 0:
+      sys.step()
+    self.assertEqual(4, sys.cycles)
+    self.assertEqual(0x8003, sys.cpu.pc().value)
+    self.assertEqual(0b10101110, sys.cpu.a().value)
+
+  def test_asl_absolute(self):
+    cpu = self.cpu
+
+    cpu.pc(0x8000)
+    cpu.sp(0xff)
+    cpu.address_bus.memset({
+      0x8000: 0x0e,
+      0x8001: 0x33,
+      0x8002: 0x06,
+      0x0633: 0b11000011
+    })
+
+    sys = SystemCPU(cpu)
+    sys.step()
+
+    self.assertEqual(0x0e, sys.cpu.IR().value)
+    self.assertEqual(0x8001, sys.cpu.pc().value)
+    self.assertEqual(5, len(sys.current_steps))
+    self.assertEqual(1, sys.cycles)
+
+    while len(sys.current_steps) > 0:
+      sys.step()
+    self.assertEqual(6, sys.cycles)
+    self.assertEqual(0x8003, sys.cpu.pc().value)
+    sys.cpu.address_set(0x0633)
+    v = sys.cpu.address_read()
+
+    self.assertEqual(0b10000110, v.value)
+    self.assertEqual(1, sys.cpu.c())
+
+  def test_bpl_no_branch(self):

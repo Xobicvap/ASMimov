@@ -12,6 +12,9 @@ class SystemCPU:
     self.aggregator = Aggregator("CPU", use_aggregator)
     self.aggregate_end_only = aggregate_end_only
 
+  def start(self, override_reset=None):
+    self.cpu.reset(override_reset)
+
   def determine_instruction(self):
     function_list = []
     function_list.extend(per_cycle_fxns[self.cpu.IR().value])
@@ -21,6 +24,7 @@ class SystemCPU:
     if len(self.current_steps) == 0:
       self.current_steps.append(fetch_instruction)
     current_inst = self.current_steps.pop(0)
+    print(current_inst)
     self.cpu, instruction_operating = current_inst(self.cpu)
     # no, pycharm, it can't be simplified, state == None
     # means there are more instructions following

@@ -18,6 +18,19 @@ class CPU:
     self.use_aggregator = use_aggregator
     self.change_map = {}
 
+  def reset(self, override_reset=None):
+    if override_reset is not None:
+      self.pc(override_reset)
+    else:
+      lo_reset = self.reset_vector()
+      hi_reset = self.reset_vector(True)
+      self.address_set(lo_reset)
+      reset_addr_lo = self.address_read()
+      self.address_set(hi_reset)
+      reset_addr_hi = self.address_read()
+      reset_addr = WordValue(reset_addr_lo, reset_addr_hi)
+      self.pc(reset_addr)
+
   def write_change(self, name, value):
     if self.use_aggregator:
       self.change_map.update({name: value})

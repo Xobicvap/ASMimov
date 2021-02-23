@@ -60,7 +60,7 @@ def clv(cpu):
   cpu.v(1)
   return cpu, True
 
-def cld(cpu):
+def cld(cpu, implied=None):
   cpu.d(0)
   return cpu, True
 

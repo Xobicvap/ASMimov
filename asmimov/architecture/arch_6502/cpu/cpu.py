@@ -133,3 +133,37 @@ class CPU:
     if ret_val:
       self.fix_effective = False
     return ret_val
+
+  def collect_state(self):
+    pc = str(self.pc())
+    n = str(self.n())
+    v = str(self.v())
+    d = str(self.d())
+    i = str(self.i())
+    z = str(self.z())
+    c = str(self.c())
+    a = str(self.a())
+    x = str(self.x())
+    y = str(self.y())
+    p = str(self.p())
+    sp = str(self.sp())
+    ir = str(self.IR())
+    dr = str(self.DR())
+    d2 = str(self.D2())
+    return {
+      "PC": pc,
+      "N": n,
+      "V": v,
+      "D": d,
+      "I": i,
+      "Z": z,
+      "C": c,
+      "A": a,
+      "X": x,
+      "Y": y,
+      "P": p,
+      "SP": sp,
+      "IR": ir,
+      "DR": dr,
+      "D2": d2
+    }

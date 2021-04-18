@@ -19,14 +19,14 @@ def decrement_sp(cpu):
 
 def address_of_stack(cpu):
   cpu.address_set(cpu.sp().get_effective())
-  return cpu
+  return cpu, None
 
 def push_pch_and_decrement_sp(cpu):
   """
   Remember, this is setting the address OF THE STACK on the bus
   then writing the high byte of the PC
   """
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   # this looks wrong initially but it's only writing a byte;
   # it's not writing an entire address
   cpu.address_write(cpu.pc().get_hi_byte())
@@ -34,23 +34,22 @@ def push_pch_and_decrement_sp(cpu):
 
 def push_pcl_and_decrement_sp(cpu):
   # see comments for push_pch_and_decrement_sp
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   cpu.address_write(cpu.pc().get_lo_byte())
   return decrement_sp(cpu)
 
 def pull_pcl_and_increment_sp(cpu):
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   cpu.pc().set_lo_byte(cpu.address_bus.read())
   cpu.address_write(ByteValue(0))
   return increment_sp(cpu)
 
 def pull_pch(cpu):
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   cpu.pc().set_hi_byte(cpu.address_bus.read())
+  cpu.pc().set_lo_byte((cpu.pc() + 1).lo_byte)
   cpu.address_write(ByteValue(0))
-  # don't increment sp?
-  # cpu, _ = increment_sp(cpu)
-  # return cpu, True
+
   return cpu, True
 
 def push_p_with_b_flag_and_decrement_sp(cpu):
@@ -61,7 +60,7 @@ def push_p_with_b_flag_and_decrement_sp(cpu):
   return decrement_sp(cpu)
 
 def pull_p_and_increment_sp(cpu):
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   v = cpu.address_bus.read()
   # bits 5 and 4 don't actually exist and have to be
   # read directly from the stack
@@ -73,7 +72,7 @@ def pull_p_and_increment_sp(cpu):
 
 def push_register_decrement_sp(cpu, register):
   v = cpu.register(register)
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   if register == "P":
     v = v | 0b00110000
 
@@ -82,7 +81,7 @@ def push_register_decrement_sp(cpu, register):
   return cpu, True
 
 def pull_register(cpu, register):
-  cpu = address_of_stack(cpu)
+  cpu, _ = address_of_stack(cpu)
   v = cpu.address_read()
   cpu.register(register, v)
   cpu.address_write(ByteValue(0))
@@ -116,7 +115,6 @@ def read_next_throw_away_inc_pc(cpu):
   return cpu, None
 
 def read_from_effective_fix_address(cpu):
-  print(str(cpu.address_bus.memory.memory_banks[0]))
   cpu.address_bus.address_word.fix_page_boundaries()
   v = cpu.address_read()
   cpu.DR(v)

@@ -17,7 +17,6 @@ class SystemConfig:
       self.using_user_config = True
     else:
       self.config_dir = self.base_config_dir
-
     
     main_config_file = self.config_dir + path_sep + "system_config.json"
     print("LOADING MAIN CONFIG FILE " + main_config_file)

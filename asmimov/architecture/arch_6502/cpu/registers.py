@@ -5,11 +5,11 @@ from .stack_pointer import StackPointer
 class Registers:
 
   def __init__(self):
-    self.a = ByteValue(0)
-    self.x = ByteValue(0)
-    self.y = ByteValue(0)
+    self.a = ByteValue(0xff)
+    self.x = ByteValue(0xff)
+    self.y = ByteValue(0xff)
     self.sp = StackPointer(0)
-    self.p = StatusRegister(0)
+    self.p = StatusRegister(0xff)
     self.pc = WordValue(0)
     self.register_names = ['A', 'X', 'Y', 'SP', 'P', 'PC']
     self.normal_registers = ['A', 'X', 'Y']
@@ -24,10 +24,10 @@ class Registers:
         else StackPointer(value)
     elif upper_name == 'P':
       register = value if isinstance(value, StatusRegister) \
-          else StatusRegister(value)
+        else StatusRegister(value)
     elif upper_name == 'PC':
       register = value if isinstance(value, WordValue) \
-          else WordValue(value)
+        else WordValue(value)
     else:
       raise Exception("Unknown register being written to: " + name)
     setattr(self, name.lower(), register)

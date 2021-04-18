@@ -37,7 +37,7 @@ class ByteValue:
       return 0
     return 1 if self.value > 127 else 0
 
-  def overflow(self, as_bool):
+  def overflow(self, as_bool=False):
     if as_bool:
       return self.overflow_happened
     return 1 if self.overflow_happened else 0
@@ -298,6 +298,7 @@ class WordValue:
       self.hi_byte = self.hi_byte + 1
       needed_fix = True
     self.compute_value()
+    self.reset_page_boundaries()
     return needed_fix
 
   def set_lo_byte(self, lo_byte):

@@ -16,7 +16,7 @@ def compute_z(v):
 # NO OPERATION
 ####################################################
 
-def nop(cpu):
+def nop(cpu, implied=None):
   return cpu, True
 
 ####################################################
@@ -40,23 +40,23 @@ def plp(cpu, implied=None):
 # FLAG MANIPULATION
 ####################################################
 
-def clc(cpu):
+def clc(cpu, implied=None):
   cpu.c(0)
   return cpu, True
 
-def sec(cpu):
+def sec(cpu, implied=None):
   cpu.c(1)
   return cpu, True
 
-def cli(cpu):
+def cli(cpu, implied=None):
   cpu.i(0)
   return cpu, True
 
-def sei(cpu):
+def sei(cpu, implied=None):
   cpu.i(1)
   return cpu, True
 
-def clv(cpu):
+def clv(cpu, implied=None):
   cpu.v(1)
   return cpu, True
 
@@ -64,7 +64,7 @@ def cld(cpu, implied=None):
   cpu.d(0)
   return cpu, True
 
-def sed(cpu):
+def sed(cpu, implied=None):
   cpu.d(1)
   return cpu, True
 
@@ -72,27 +72,27 @@ def sed(cpu):
 # TRANSFER OPS
 ####################################################
 
-def tax(cpu):
+def tax(cpu, implied=None):
   cpu.x(cpu.a())
   return cpu, True
 
-def tay(cpu):
+def tay(cpu, implied=None):
   cpu.y(cpu.a())
   return cpu, True
 
-def txa(cpu):
+def txa(cpu, implied=None):
   cpu.a(cpu.x())
   return cpu, True
 
-def tya(cpu):
+def tya(cpu, implied=None):
   cpu.a(cpu.y())
   return cpu, True
 
-def txs(cpu):
+def txs(cpu, implied=None):
   cpu.sp(cpu.x())
   return cpu, True
 
-def tsx(cpu):
+def tsx(cpu, implied=None):
   cpu.x(cpu.sp())
   return cpu, True
 
@@ -105,10 +105,11 @@ def branch(cpu, condition):
     offset = cpu.DR()
     temp_pc = cpu.pc() + offset
 
-    if temp_pc.page_boundaries_crossed:
+    if temp_pc.page_boundaries_crossed():
       return cpu, None
+    cpu.pc(temp_pc)
     return cpu, True
-  cpu = increment_pc(cpu)
+  #cpu = increment_pc(cpu)
   return cpu, True
 
 def bpl(cpu):
@@ -265,7 +266,7 @@ def increment(cpu, reg, name):
   cpu.register(name, reg)
   return cpu, True
 
-def dec(cpu):
+def dec(cpu, implied=None):
   v = cpu.DR()
   v = v - 1
   cpu.n(v.negative())
@@ -273,7 +274,7 @@ def dec(cpu):
   cpu.DR(v)
   return cpu
 
-def inc(cpu):
+def inc(cpu, implied=None):
   v = cpu.DR()
   v = v + 1
   cpu.n(v.negative())
@@ -281,19 +282,19 @@ def inc(cpu):
   cpu.DR(v)
   return cpu
 
-def dey(cpu):
+def dey(cpu, implied=None):
   y = cpu.y()
   return decrement(cpu, y, "Y")
 
-def dex(cpu):
+def dex(cpu, implied=None):
   x = cpu.x()
   return decrement(cpu, x, "X")
 
-def iny(cpu):
+def iny(cpu, implied=None):
   y = cpu.y()
   return increment(cpu, y, "Y")
 
-def inx(cpu):
+def inx(cpu, implied=None):
   x = cpu.x()
   return increment(cpu, x, "X")
 
@@ -302,28 +303,36 @@ def inx(cpu):
 ####################################################
 
 def sta(cpu):
-  cpu = write_a_to_effective_address(cpu)
+  cpu, _ = write_a_to_effective_address(cpu)
   return cpu, True
 
 def stx(cpu):
-  cpu = write_x_to_effective_address(cpu)
+  cpu, _ = write_x_to_effective_address(cpu)
   return cpu, True
 
 def sty(cpu):
-  cpu = write_y_to_effective_address(cpu)
+  cpu, _ = write_y_to_effective_address(cpu)
   return cpu, True
 
 def lda(cpu):
   cpu.a(cpu.DR())
+  load_assign_status(cpu, cpu.a())
   return cpu, True
 
 def ldx(cpu):
   cpu.x(cpu.DR())
+  load_assign_status(cpu, cpu.x())
   return cpu, True
 
 def ldy(cpu):
   cpu.y(cpu.DR())
+  load_assign_status(cpu, cpu.y())
   return cpu, True
+
+def load_assign_status(cpu, register):
+  cpu.n(1) if register.negative() else cpu.n(0)
+  cpu.z(1) if register.zero() else cpu.z(0)
+  return cpu
 
 ####################################################
 # COMPARISONS
@@ -334,8 +343,8 @@ def bit_op(cpu):
   a = cpu.a()
   v2 = a & v
   cpu.c(v2.zero())
-  cpu.n(v.bit_set(7))
-  cpu.v(v.bit_set(6))
+  cpu.n(v.bit_at(7))
+  cpu.v(v.bit_at(6))
   return cpu, True
 
 def comparison(op1, op2, cpu):
@@ -371,6 +380,9 @@ def cmp(cpu):
 class OperationType:
   def __init__(self, operation=None):
     self.operation = operation
+
+  def __str__(self):
+    return self.operation.__name__ + ":" + self.__class__.__name__
 
 class Relative(OperationType):
   def __call__(self, cpu):

@@ -1,5 +1,5 @@
 {
   "machine": "apple_ii",
-  "mode": "debug",
+  "mode": "emulation",
   "aggregate": false
 }

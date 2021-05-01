@@ -27,30 +27,7 @@ class AsmimovRunner:
   def run(self):
     continuing = True
     while continuing:
-      # user_input = input("")
-      # if user_input == "q":
-      #   break
       self.emulation.step()
-      # print("PC      NV--DIZC A  X  Y  P  SP IR DR D2")
-      # cpu_state = self.emulation.get_cpu_state()
-      # pc = str(cpu_state.pc())
-      # n = str(cpu_state.n())
-      # v = str(cpu_state.v())
-      # d = str(cpu_state.d())
-      # i = str(cpu_state.i())
-      # z = str(cpu_state.z())
-      # c = str(cpu_state.c())
-      # a = str(cpu_state.a())
-      # x = str(cpu_state.x())
-      # y = str(cpu_state.y())
-      # p = str(cpu_state.p())
-      # sp = str(cpu_state.sp())
-      # ir = str(cpu_state.IR())
-      # dr = str(cpu_state.DR())
-      # d2 = str(cpu_state.D2())
-      #
-      # print(pc + "  " + n + v + "--" + d + i + z + c + " " + a + " " + x + " " + y + " " + p + " " + sp + " " + ir + " " + dr + " " + d2)
-      # print("")
     print("Thank you for using ASMIMOV.")
 
 

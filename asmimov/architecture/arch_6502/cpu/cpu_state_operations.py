@@ -106,6 +106,7 @@ def branch(cpu, condition):
     temp_pc = cpu.pc() + offset
 
     if temp_pc.page_boundaries_crossed():
+      cpu.pc(temp_pc)
       return cpu, None
     cpu.pc(temp_pc)
     return cpu, True

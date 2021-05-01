@@ -36,6 +36,16 @@ class StatusRegister(ByteValue):
       return self.get_flag(flag_name)
     else:
       self.set_flags(value, flag_name)
+      n_bit = self.N << 7
+      v_bit = self.Z << 6
+      b5_bit = self.value & 0b00100000
+      b4_bit = self.value & 0b00010000
+      d_bit = self.D << 3
+      i_bit = self.I << 2
+      z_bit = self.Z << 1
+      c_bit = self.C
+      result = n_bit + v_bit + b5_bit + b4_bit + d_bit + i_bit + z_bit + c_bit
+      self.value = result
 
   def __repr__(self):
     return super().__repr__()

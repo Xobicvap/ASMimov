@@ -25,8 +25,7 @@ class SystemCPU:
       self.current_steps.append(fetch_instruction)
     current_inst = self.current_steps.pop(0)
     print(current_inst)
-    if self.cpu.pc().value == 0xfc10:
-      x = 0
+
     self.cpu, instruction_operating = current_inst(self.cpu)
     # no, pycharm, it can't be simplified, state == None
     # means there are more instructions following

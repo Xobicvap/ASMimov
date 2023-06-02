@@ -1,12 +1,12 @@
 from .memory_bank import MemoryBank
-from .soft_switches import SoftSwitches
+from .soft_switches import IORegisters
 
 class Memory:
 
   def __init__(self, num_banks=1, power_on_behavior=0, soft_switches=None):
     self.memory_banks = []
     self.current_bank = 0
-    self.soft_switches = SoftSwitches() if soft_switches is not None else soft_switches
+    self.soft_switches = IORegisters() if soft_switches is not None else soft_switches
     for i in range(0, num_banks):
       self.memory_banks.append(MemoryBank(power_on_behavior))
 
